@@ -1,6 +1,14 @@
 # FrameScope
 
-End-to-end pipeline for collecting, labeling, and analyzing metaphor framing and stance in Reddit and news discourse using LLMs.
+FrameScope is a pipeline for studying how people talk about AI in real-world data.
+
+It collects data from Reddit and news sources, processes the text, and uses LLMs to label things like metaphors and stance. The goal isn’t just to run models, but to understand how well they actually capture the way people describe AI, especially compared to human annotations.
+
+The project focuses on building a clean, reproducible workflow—from data collection to evaluation—and on comparing different models in a more systematic way.
+
+## Table of Contents
+
+- [Setup](#setup)
 
 ## Setup
 
