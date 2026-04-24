@@ -1,37 +1,62 @@
 # FrameScope
+
 End-to-end pipeline for collecting, labeling, and analyzing metaphor framing and stance in Reddit and news discourse using LLMs.
-SETUP
+
 ## Setup
-1) Clone and enter repo
+
+### 1. Clone the repository
+
+```bash
 git clone https://github.com/sagnik-chakravarty/FrameScope.git
 cd FrameScope
+```
 
-2) Python environment
+### 2. Create a Python environment
+
+```bash
 python3 -m venv .venv
-source .venv/bin/activate  # Mac/Linux
-```{python}
+source .venv/bin/activate
+python -m pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
-3) Local LLMs (Ollama)
-```{bash}
-# one command (installs Ollama if needed, starts server, pulls models)
-python setup/download_ollama_models.py
-```
-```{bash}
-# optional: heavy models (may require high RAM)
-python setup/download_ollama_models.py --include-heavy
-```
+### 3. Install and prepare Ollama models
 
-4) Verify
-curl http://localhost:11434   # should return: Ollama is running
+This script will:
+- install Ollama if it is missing
+- start the Ollama server if needed
+- check which models are already installed
+- download only the missing models
 
-5) Run
-```{bash}
-python scripts/01_fetch_reddit.py
-jupyter notebook notebooks/01_LLM_comparison_metrics.ipynb
+```bash
+python Framescope/download_ollama_models.py
 ```
 
-Notes:
-- If you see “connection refused”, run: ollama serve
-- Default safe models: llama3.1:8b, llama3.2, mistral
+### 4. Verify Ollama is running
+
+```bash
+curl http://localhost:11434/api/tags
+```
+
+If Ollama is working, you should see a JSON response.
+
+### 5. Run the pipeline
+
+```bash
+python Scripts/01_fetch_reddit.py
+python Scripts/02_clean_store.py
+python Scripts/03_sentence_preprocess.py
+python Scripts/04_update_database.py
+```
+
+Or open the notebook:
+
+```bash
+jupyter notebook Notebooks/01_LLM_comparison_metrics.ipynb
+```
+
+## Notes
+
+- If you see `connection refused`, start Ollama with `ollama serve`.
+- The downloader skips models that are already installed.
+- Large models such as `llama3.1:70b` may require significant RAM and disk space.
