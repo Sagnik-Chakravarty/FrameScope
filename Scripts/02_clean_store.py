@@ -2,11 +2,7 @@ from __future__ import annotations
 
 import json
 import logging
-import shutil
-from datetime import datetime, timedelta
 from pathlib import Path
-
-import yaml
 
 
 logging.basicConfig(
@@ -14,21 +10,8 @@ logging.basicConfig(
     format="%(asctime)s | %(levelname)s | %(message)s",
 )
 
-CONFIG_PATH = Path("config.yaml")
-
 RAW_DIR = Path("data/raw/reddit")
-PROCESSED_DIR = Path("data/processed/reddit")
 CLEAN_DIR = Path("data/cleaned/reddit")
-LABELED_DIR = Path("data/labeled/reddit")
-
-
-def load_config(path: Path) -> dict:
-    if not path.exists():
-        logging.warning("No config.yaml found. Using default retention settings.")
-        return {}
-
-    with open(path, "r", encoding="utf-8") as f:
-        return yaml.safe_load(f) or {}
 
 
 def load_json(path: Path):
@@ -143,69 +126,18 @@ def process_day(day_path: Path) -> list[dict]:
     return deduplicate_records(all_records)
 
 
-def cleanup_old_runs(base_dir: Path, retention_days: int) -> None:
-    if retention_days <= 0:
-        logging.info("Skipping cleanup for %s because retention_days=%s", base_dir, retention_days)
-        return
-
-    if not base_dir.exists():
-        return
-
-    cutoff_date = datetime.now() - timedelta(days=retention_days)
-
-    for run_dir in base_dir.iterdir():
-        if not run_dir.is_dir():
-            continue
-
-        try:
-            run_date = datetime.strptime(run_dir.name, "%Y-%m-%d")
-        except ValueError:
-            logging.warning("Skipping non-date folder during cleanup: %s", run_dir)
-            continue
-
-        if run_date < cutoff_date:
-            logging.info("Deleting old run folder: %s", run_dir)
-            shutil.rmtree(run_dir)
-
-
-def run_cleanup(config: dict) -> None:
-    storage_config = config.get("storage", {})
-
-    cleanup_old_runs(
-        RAW_DIR,
-        int(storage_config.get("raw_retention_days", 90)),
-    )
-
-    cleanup_old_runs(
-        PROCESSED_DIR,
-        int(storage_config.get("processed_retention_days", 90)),
-    )
-
-    cleanup_old_runs(
-        CLEAN_DIR,
-        int(storage_config.get("cleaned_retention_days", 365)),
-    )
-
-    cleanup_old_runs(
-        LABELED_DIR,
-        int(storage_config.get("labeled_retention_days", 365)),
-    )
-
-
 def main():
-    config = load_config(CONFIG_PATH)
-
     if not RAW_DIR.exists():
-        raise FileNotFoundError("No raw data found. Run fetch script first.")
+        raise FileNotFoundError("No raw data found. Run fetch/backfill script first.")
 
     total_records = 0
 
-    for day_path in sorted(RAW_DIR.iterdir()):
-        if not day_path.is_dir():
+    for run_path in sorted(RAW_DIR.iterdir()):
+        if not run_path.is_dir():
             continue
 
-        cleaned_data = process_day(day_path)
-        output_path = CLEAN_DIR / day_path.name / "cleaned_data.json"
+        cleaned_data = process_day(run_path)
+        output_path = CLEAN_DIR / run_path.name / "cleaned_data.json"
 
         save_json(cleaned_data, output_path)
 
@@ -213,16 +145,11 @@ def main():
 
         logging.info(
             "Saved cleaned data for %s | records=%s",
-            day_path.name,
+            run_path.name,
             len(cleaned_data),
         )
 
     logging.info("Cleaning complete | total_records=%s", total_records)
-
-    # Cleanup happens only after cleaning completes successfully.
-    run_cleanup(config)
-
-    logging.info("Retention cleanup complete")
 
 
 if __name__ == "__main__":

@@ -17,22 +17,74 @@ reddit:
   step_hours: 24 # Fetch posts in 24-hour windows to manage API limits and data completeness.
   limit: 100 # Max posts per window. Adjust based on expected volume and API limits.
 
-  keywords:
-    - "AI"
-    - "Deep Fake"
-    - "Artificial Intelligence"
-    - "Chat GPT"
-    - "Open AI"
-    - "LLAMA"
-    - "Claude"
-    - "Anthropic"
-    - "Sora"
-    - "Sam Altman"
-    - "language model"
-    - "Machine Learning"
-
 storage:
+  archive_dry_run: true
+
   raw_retention_days: 90
   processed_retention_days: 90
   cleaned_retention_days: 365
+  sentences_retention_days: 365
   labeled_retention_days: 365
+
+sentence_preprocess:
+  spacy_model: en_core_web_sm
+  min_sentence_chars: 20
+
+  ai_keywords:
+    - "AI"
+    - "artificial intelligence"
+    - "machine learning"
+    - "deep learning"
+    - "neural network"
+    - "GPT"
+    - "ChatGPT"
+    - "Chat GPT"
+    - "generative AI"
+    - "robotics"
+    - "automation"
+    - "computer vision"
+    - "natural language processing"
+    - "NLP"
+    - "AGI"
+    - "Artificial General Intelligence"
+    - "large language model"
+    - "large language models"
+    - "language model"
+    - "LLM"
+    - "LLMs"
+    - "Sam Altman"
+    - "Elon Musk"
+    - "Google AI"
+    - "OpenAI"
+    - "Open AI"
+    - "Microsoft AI"
+    - "Meta AI"
+    - "Anthropic"
+    - "Claude"
+    - "Gemini"
+    - "Copilot"
+    - "Dall-E"
+    - "Midjourney"
+    - "Stability AI"
+    - "Sora"
+    - "algorithmic"
+    - "data science"
+    - "predictive modeling"
+    - "cognitive computing"
+    - "expert system"
+    - "intelligent agent"
+    - "neural networks"
+    - "computer intelligence"
+    - "android"
+    - "cyborg"
+    - "digital assistant"
+    - "smart technology"
+    - "intelligent automation"
+    - "big data"
+    - "predictive analytics"
+    - "machine intelligence"
+    - "cognitive automation"
+    - "virtual assistant"
+    - "AI-powered"
+    - "augmented intelligence"
+    - "human-AI interaction"
