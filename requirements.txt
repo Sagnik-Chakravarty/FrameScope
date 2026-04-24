@@ -3,3 +3,7 @@ pyyaml
 spacy
 pandas
 tqdm
+streamlit
+plotly
+sqlalchemy
+scikit-learn
