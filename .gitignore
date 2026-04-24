@@ -1,0 +1,46 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.venv/
+venv/
+
+# Environment variables (secrets)
+.env
+.env.*
+
+# Jupyter
+.ipynb_checkpoints/
+
+# OS
+.DS_Store
+
+# Logs
+logs/
+*.log
+
+# Data (IMPORTANT)
+data/
+raw/
+processed/
+*.csv
+*.json
+*.jsonl
+*.parquet
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Model outputs
+models/
+outputs/
+
+# BI temp files
+*.pbix.autosave
+
+# Misc
+tmp/
+cache/
