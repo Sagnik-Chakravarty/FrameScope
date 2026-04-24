@@ -1,9 +1,9 @@
 # FrameScope
 End-to-end pipeline for collecting, labeling, and analyzing metaphor framing and stance in Reddit and news discourse using LLMs.
 SETUP
-
+## Setup
 1) Clone and enter repo
-git clone https://github.com/<sagnik-chakravarty>/FrameScope.git
+git clone https://github.com/sagnik-chakravarty/FrameScope.git
 cd FrameScope
 
 2) Python environment
@@ -17,7 +17,8 @@ pip install -r requirements.txt
 ```{bash}
 # one command (installs Ollama if needed, starts server, pulls models)
 python setup/download_ollama_models.py
-
+```
+```{bash}
 # optional: heavy models (may require high RAM)
 python setup/download_ollama_models.py --include-heavy
 ```
