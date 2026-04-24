@@ -1,0 +1,32 @@
+reddit:
+  subreddits:
+    - news
+    - politics
+    - worldpolitics
+    - cryptocurrency
+    - technology
+    - askreddit
+    - moviecritic
+    - art
+    - artistlounge
+    - nostupidquestions
+    - antiwork
+
+  lookback_days: 7 # How many days back to fetch posts from. Adjust as needed.
+  freshness_lag_hours: 48 # Avoid the most recent ~48 hours to ensure complete data (score/comments).
+  step_hours: 24 # Fetch posts in 24-hour windows to manage API limits and data completeness.
+  limit: 100 # Max posts per window. Adjust based on expected volume and API limits.
+
+  keywords:
+    - "AI"
+    - "Deep Fake"
+    - "Artificial Intelligence"
+    - "Chat GPT"
+    - "Open AI"
+    - "LLAMA"
+    - "Claude"
+    - "Anthropic"
+    - "Sora"
+    - "Sam Altman"
+    - "language model"
+    - "Machine Learning"
