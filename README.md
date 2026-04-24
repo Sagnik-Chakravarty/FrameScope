@@ -40,21 +40,6 @@ curl http://localhost:11434/api/tags
 
 If Ollama is working, you should see a JSON response.
 
-### 5. Run the pipeline
-
-```bash
-python Scripts/01_fetch_reddit.py
-python Scripts/02_clean_store.py
-python Scripts/03_sentence_preprocess.py
-python Scripts/04_update_database.py
-```
-
-Or open the notebook:
-
-```bash
-jupyter notebook Notebooks/01_LLM_comparison_metrics.ipynb
-```
-
 ## Notes
 
 - If you see `connection refused`, start Ollama with `ollama serve`.
