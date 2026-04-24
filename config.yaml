@@ -30,3 +30,9 @@ reddit:
     - "Sam Altman"
     - "language model"
     - "Machine Learning"
+
+storage:
+  raw_retention_days: 90
+  processed_retention_days: 90
+  cleaned_retention_days: 365
+  labeled_retention_days: 365
