@@ -1,5 +1,3 @@
-from pathlib import Path
-
 # Arctic Shift API Usage Documentation for FrameScope
 
 ## Overview
