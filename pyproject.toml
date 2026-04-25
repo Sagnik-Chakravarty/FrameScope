@@ -1,13 +1,13 @@
 [project]
 name = "framescope"
-version = "0.2.0"
+version = "0.2.1"
 description = "Pipeline for collecting, labeling, and analyzing AI metaphor framing and stance in Reddit discourse."
 requires-python = ">=3.9"
 authors = [
     {name = "Sagnik Chakravarty", email = "sagnik@example.com"},
 ]
 license = {text = "MIT"}
-readme = "README.md"
+readme = "Docs/arctic_shift_api.md"
 keywords = ["reddit", "ai", "metaphor", "nlp", "llm"]
 
 dependencies = [
