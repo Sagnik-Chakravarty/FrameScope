@@ -16,13 +16,57 @@ All experiments and results are derived from the notebook:
 
 ---
 
-## 2. Experimental Setup
+## 2. Methodology: Metaphor Selection
 
-### 2.1 Task
+To ensure a fair and reproducible benchmark, we did not evaluate all metaphor classes from all sources. Instead, we used a controlled label selection strategy based on overlap between:
+
+- the metaphor taxonomy reported in "From Tools to Thieves” (Cheng et al.)
+- the FrameScope metaphor schema used in this project
+
+### 2.1 Source Taxonomies
+
+- **Myra/Cheng taxonomy:** the full set of metaphor categories from the reference paper
+- **FrameScope taxonomy:** the operational categories available in our labeling schema
+
+![Metaphor categories adapted from Myra/Cheng](../Docs_Images/Metaphors_Myra_Cheng.png)
+
+### 2.2 Selection Rule (Strict Intersection)
+
+We used only categories that appear in **both** taxonomies with direct semantic equivalence.
+
+- No manual remapping across non-equivalent labels
+- No inferred merges or subjective category translation
+
+This prevents introducing interpretation bias during evaluation.
+
+### 2.3 Final Evaluation Labels
+
+The final shared label set used for model evaluation was:
+
+- Tool
+- Assistant
+- Genie
+- Mirror
+- Child
+- Friend
+- Animal
+- God
+
+### 2.4 Why This Matters
+
+- Keeps comparison aligned with both the paper benchmark and the FrameScope production schema
+- Avoids label leakage from subjective mapping decisions
+- Improves reproducibility of results across model runs
+
+---
+
+## 3. Experimental Setup
+
+### 3.1 Task
 
 The task is **single-label metaphor classification**, where each input text is assigned a **dominant metaphor category**.
 
-### 2.2 Models Evaluated
+### 3.2 Models Evaluated
 
 #### GPT Models (API-based)
 - gpt-4.1-nano  
@@ -40,7 +84,7 @@ The task is **single-label metaphor classification**, where each input text is a
 
 ---
 
-### 2.3 Evaluation Metrics
+### 3.3 Evaluation Metrics
 
 We evaluate models using:
 
@@ -53,7 +97,7 @@ We evaluate models using:
 
 ---
 
-## 3. Overall Model Performance
+## 4. Overall Model Performance
 
 ![Overall model performance](../plots/model_benchmark/all_model_metrics_bar_charts.png)
 
@@ -69,7 +113,7 @@ Performance differences across models are relatively small (~0.03–0.04 Macro F
 
 ---
 
-## 4. Cost–Performance Trade-off (GPT Models)
+## 5. Cost–Performance Trade-off (GPT Models)
 
 ![GPT cost-performance trade-off](../plots/model_benchmark/gpt_performance_per_dollar_grid.png)
 
@@ -86,7 +130,7 @@ This makes **gpt-4.1-nano the most cost-efficient GPT model**.
 
 ---
 
-## 5. Latency–Performance Trade-off (Local Models)
+## 6. Latency–Performance Trade-off (Local Models)
 
 ![Local model latency-performance trade-off](../plots/model_benchmark/llama_performance_per_latency_grid.png)
 
@@ -103,7 +147,7 @@ Latency becomes a critical factor for large-scale inference.
 
 ---
 
-## 6. Confusion Matrix Analysis
+## 7. Confusion Matrix Analysis
 
 ![Confusion matrix grid (normalized)](../plots/model_benchmark/Confusion_Matrix_All_Model_normalized.png)
 
@@ -126,7 +170,7 @@ They arise from **semantic overlap between metaphor categories**, rather than mo
 
 ---
 
-## 7. Per-Metaphor Comparison (Selected Models)
+## 8. Per-Metaphor Comparison (Selected Models)
 
 We compare the best-performing models from each category:
 
@@ -135,7 +179,7 @@ We compare the best-performing models from each category:
 
 ---
 
-### 7.1 Per-Metaphor Performance
+### 8.1 Per-Metaphor Performance
 
 ![Per-metaphor GPT vs LLaMA performance](../plots/model_benchmark/best_model_performance_comparison.png)
 
@@ -158,7 +202,7 @@ We compare the best-performing models from each category:
 
 ---
 
-### 7.2 Performance Differences
+### 8.2 Performance Differences
 
 ![Per-metaphor F1 difference (GPT minus LLaMA)](../plots/model_benchmark/gpt_vs_llama_f1_difference.png)
 
@@ -177,7 +221,7 @@ Differences are driven by **semantic complexity**, not model size.
 
 ---
 
-### 7.3 Frequency vs Performance
+### 8.3 Frequency vs Performance
 
 ![Frequency vs performance by model](../plots/model_benchmark/frequency_vs_f1_grid.png)
 
@@ -192,7 +236,7 @@ Performance depends more on **semantic clarity** than data frequency.
 
 ---
 
-## 8. Final Model Selection
+## 9. Final Model Selection
 
 ### Selected Model: **llama3.2**
 
@@ -216,7 +260,7 @@ Performance depends more on **semantic clarity** than data frequency.
 
 ---
 
-## 9. Conclusion
+## 10. Conclusion
 
 This evaluation demonstrates that:
 
@@ -231,7 +275,7 @@ This evaluation demonstrates that:
 
 ---
 
-## 10. Reference
+## 11. Reference
 
 - Notebook: [Notebooks/01_LLM_comparison_metrics.ipynb](../Notebooks/01_LLM_comparison_metrics.ipynb)  
 - Plots: [plots/model_benchmark](../plots/model_benchmark/)  
