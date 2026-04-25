@@ -1,4 +1,6 @@
-Database Schema — FrameScope
+## Database Schema — FrameScope
+
+![Database Schema](../Docs_Images/database_schema.png)
 
 Overview
 --------
@@ -151,12 +153,3 @@ Notes
 - Only structured outputs are stored in the database
 - Raw LLM outputs are logged separately
 
-
-------------------------------------------------------------
-Future Extensions
-------------------------------------------------------------
-
-- Aggregated tables (monthly / subreddit-level)
-- Model version tracking
-- Confidence scores
-- Multi-label metaphors (if needed)
