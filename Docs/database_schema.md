@@ -11,11 +11,15 @@ llm_labels              → LLM-generated annotations (metaphor, stance, granula
 
 Pipeline Flow:
 
+```text
 reddit_posts
-    ↓
+    |
+    v
 reddit_sentence_items
-    ↓
+    |
+    v
 llm_labels
+```
 
 
 ------------------------------------------------------------
