@@ -55,8 +55,7 @@ We evaluate models using:
 
 ## 3. Overall Model Performance
 
-> **Plot:**  
-> [all_model_metrics_bar_charts.png](../plots/model_benchmark/all_model_metrics_bar_charts.png)
+![Overall model performance](../plots/model_benchmark/all_model_metrics_bar_charts.png)
 
 ### Observations
 
@@ -72,8 +71,7 @@ Performance differences across models are relatively small (~0.03–0.04 Macro F
 
 ## 4. Cost–Performance Trade-off (GPT Models)
 
-> **Plot:**  
-> [gpt_performance_per_dollar_grid.png](../plots/model_benchmark/gpt_performance_per_dollar_grid.png)
+![GPT cost-performance trade-off](../plots/model_benchmark/gpt_performance_per_dollar_grid.png)
 
 ### Observations
 
@@ -90,8 +88,7 @@ This makes **gpt-4.1-nano the most cost-efficient GPT model**.
 
 ## 5. Latency–Performance Trade-off (Local Models)
 
-> **Plot:**  
-> [llama_performance_per_latency_grid.png](../plots/model_benchmark/llama_performance_per_latency_grid.png)
+![Local model latency-performance trade-off](../plots/model_benchmark/llama_performance_per_latency_grid.png)
 
 ### Observations
 
@@ -108,8 +105,7 @@ Latency becomes a critical factor for large-scale inference.
 
 ## 6. Confusion Matrix Analysis
 
-> **Plot:**  
-> [Confusion_Matrix_All_Model_normalized.png](../plots/model_benchmark/Confusion_Matrix_All_Model_normalized.png)
+![Confusion matrix grid (normalized)](../plots/model_benchmark/Confusion_Matrix_All_Model_normalized.png)
 
 ### Observations
 
@@ -141,8 +137,7 @@ We compare the best-performing models from each category:
 
 ### 7.1 Per-Metaphor Performance
 
-> **Plot:**  
-> [best_model_performance_comparison.png](../plots/model_benchmark/best_model_performance_comparison.png)
+![Per-metaphor GPT vs LLaMA performance](../plots/model_benchmark/best_model_performance_comparison.png)
 
 ### Observations
 
@@ -165,8 +160,7 @@ We compare the best-performing models from each category:
 
 ### 7.2 Performance Differences
 
-> **Plot:**  
-> [gpt_vs_llama_f1_difference.png](../plots/model_benchmark/gpt_vs_llama_f1_difference.png)
+![Per-metaphor F1 difference (GPT minus LLaMA)](../plots/model_benchmark/gpt_vs_llama_f1_difference.png)
 
 ### Observations
 
@@ -185,8 +179,7 @@ Differences are driven by **semantic complexity**, not model size.
 
 ### 7.3 Frequency vs Performance
 
-> **Plot:**  
-> [frequency_vs_f1_grid.png](../plots/model_benchmark/frequency_vs_f1_grid.png)
+![Frequency vs performance by model](../plots/model_benchmark/frequency_vs_f1_grid.png)
 
 ### Observations
 
