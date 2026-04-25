@@ -1,0 +1,17 @@
+[project]
+name = "framescope"
+version = "0.1.0"
+description = "Pipeline for collecting, labeling, and analyzing AI metaphor framing and stance in Reddit discourse."
+requires-python = ">=3.9"
+
+dependencies = [
+    "requests",
+    "pandas",
+    "pyyaml",
+    "tqdm",
+    "spacy"
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["framescope*"]
