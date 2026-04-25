@@ -7,7 +7,7 @@ from pathlib import Path
 
 import yaml
 
-from Framescope.arctic_shift import (
+from arcshiftwrap.arctic_shift import (
     ArcticShiftClient,
     collect_comments_by_windows,
     collect_posts_by_windows,

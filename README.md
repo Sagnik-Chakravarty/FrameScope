@@ -11,16 +11,16 @@ The project focuses on building a clean, reproducible workflow—from data colle
 Install from PyPI:
 
 ```bash
-pip install framescope
+pip install arcshiftwrap
 ```
 
 Then import the Arctic Shift client:
 
 ```python
-from Framescope import ArcticShiftClient
+from arcshiftwrap import ArcticShiftClient
 
 client = ArcticShiftClient()
-posts = client.search_posts_by_subreddit(
+posts = client.search_posts(
     subreddit="MachineLearning",
     after="2024-01-01"
 )

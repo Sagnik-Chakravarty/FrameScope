@@ -65,12 +65,12 @@ This document describes how to release FrameScope to PyPI.
 ## Verification
 
 After release, verify on PyPI:
-- https://pypi.org/project/framescope/
+- https://pypi.org/project/arcshiftwrap/
 
 Install and test:
 ```bash
-pip install --upgrade framescope
-python -c "from Framescope import ArcticShiftClient; print('Success!')"
+pip install --upgrade arcshiftwrap
+python -c "from arcshiftwrap import ArcticShiftClient; print('Success!')"
 ```
 
 ## Troubleshooting

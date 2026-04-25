@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: pypi
-      url: https://pypi.org/p/framescope
+      url: https://pypi.org/p/arcshiftwrap
     permissions:
       id-token: write
 

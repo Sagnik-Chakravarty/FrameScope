@@ -5,7 +5,7 @@ import logging
 from datetime import datetime, timezone
 from pathlib import Path
 
-from Framescope.arctic_shift import (
+from arcshiftwrap.arctic_shift import (
     ArcticShiftClient,
     collect_posts_by_windows,
 )

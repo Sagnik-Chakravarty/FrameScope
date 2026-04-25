@@ -1,5 +1,5 @@
 """
-Arctic Shift API client for FrameScope.
+Arctic Shift API client for arcshiftwrap.
 
 This module wraps Arctic Shift API endpoints and adds:
 - retries
