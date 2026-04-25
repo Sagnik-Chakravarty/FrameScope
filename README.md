@@ -6,8 +6,29 @@ It collects data from Reddit and news sources, processes the text, and uses LLMs
 
 The project focuses on building a clean, reproducible workflow—from data collection to evaluation—and on comparing different models in a more systematic way.
 
+## Installation
+
+Install from PyPI:
+
+```bash
+pip install framescope
+```
+
+Then import the Arctic Shift client:
+
+```python
+from Framescope import ArcticShiftClient
+
+client = ArcticShiftClient()
+posts = client.search_posts_by_subreddit(
+    subreddit="MachineLearning",
+    after="2024-01-01"
+)
+```
+
 ## Table of Contents
 
+- [Installation](#installation)
 - [Setup](#setup)
 
 ## Setup
