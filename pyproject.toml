@@ -1,26 +1,16 @@
 [project]
 name = "framescope"
-version = "0.2.1"
-description = "Pipeline for collecting, labeling, and analyzing AI metaphor framing and stance in Reddit discourse."
+version = "0.2.3"
+description = "Python client for the Arctic Shift API."
 requires-python = ">=3.9"
 authors = [
     {name = "Sagnik Chakravarty", email = "sagnik@example.com"},
 ]
 license = {text = "MIT"}
 readme = "Docs/arctic_shift_api.md"
-keywords = ["reddit", "ai", "metaphor", "nlp", "llm"]
 
 dependencies = [
-    "requests",
-    "pandas",
-    "numpy",
-    "matplotlib",
-    "openai",
-    "python-dotenv",
-    "pyyaml",
-    "scikit-learn",
-    "tqdm",
-    "spacy"
+    "requests"
 ]
 
 [project.urls]
