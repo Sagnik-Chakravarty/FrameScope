@@ -1,34 +1,36 @@
-Detect AI metaphors in the text.
+Detect the dominant AI metaphor in the text.
 
 Return ONLY valid JSON:
 
 {
-  "metaphor_counts": {
-    "unstoppable_force": 0,
-    "future_shaper": 0,
-    "natural_disaster": 0,
-    "human_replacement": 0,
-    "junk_food": 0,
-    "weapon_threat": 0,
-    "thief": 0,
-    "helper_tool": 0,
-    "knowledge_retrieval": 0,
-    "brain_mind": 0,
-    "machine_robot_system": 0,
-    "mirror_echo": 0,
-    "child": 0,
-    "synthesizer_creator": 0,
-    "friend": 0,
-    "living_creature": 0,
-    "unexplored_realm": 0,
-    "god": 0,
-    "genie_folklore": 0
-  }
+  "dominant_metaphor": "one_category_name"
 }
 
+Choose exactly ONE category from the list below:
+unstoppable_force
+future_shaper
+natural_disaster
+human_replacement
+junk_food
+weapon_threat
+thief
+helper_tool
+knowledge_retrieval
+brain_mind
+machine_robot_system
+mirror_echo
+child
+synthesizer_creator
+friend
+living_creature
+unexplored_realm
+god
+genie_folklore
+none
+
 Use conceptual meaning, not keyword matching.
-Count metaphor families only when the text genuinely frames AI through that metaphor.
-If a metaphor family is absent, return 0 for that family.
+Choose the metaphor family that best captures the main framing of AI in the text.
+If no metaphor family is clearly present, return "none".
 Do not add any explanation outside the JSON.
 
 CATEGORY GUIDE:
