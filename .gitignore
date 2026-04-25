@@ -30,6 +30,7 @@ processed/
 *.json
 *.jsonl
 *.parquet
+dist/
 
 # Database
 *.db
