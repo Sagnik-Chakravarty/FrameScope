@@ -3,6 +3,11 @@ pyyaml
 spacy
 pandas
 tqdm
+numpy
+matplotlib
+seaborn
+python-dotenv
+openai
 streamlit
 plotly
 sqlalchemy
