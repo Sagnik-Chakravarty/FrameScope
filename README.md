@@ -28,6 +28,12 @@ python -m pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
+Optional (installs the local package from `pyproject.toml`):
+
+```bash
+pip install -e .
+```
+
 ### 3. Install and prepare Ollama models
 
 This script will:
@@ -37,7 +43,7 @@ This script will:
 - download only the missing models
 
 ```bash
-python Framescope/download_ollama_models.py
+python Setup/download_ollama_models.py
 ```
 
 ### 4. Verify Ollama is running

@@ -7,11 +7,16 @@ requires-python = ">=3.9"
 dependencies = [
     "requests",
     "pandas",
+    "numpy",
+    "matplotlib",
+    "openai",
+    "python-dotenv",
     "pyyaml",
+    "scikit-learn",
     "tqdm",
     "spacy"
 ]
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["framescope*"]
+include = ["Framescope*"]
