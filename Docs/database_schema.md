@@ -128,6 +128,7 @@ Data Flow
 Example Join
 ------------------------------------------------------------
 
+```{sql}
 SELECT
     r.subreddit,
     r.created_utc,
@@ -139,7 +140,7 @@ FROM reddit_sentence_items r
 JOIN llm_labels l
     ON r.sentence_id = l.sentence_id
 WHERE l.source = 'reddit';
-
+```
 
 ------------------------------------------------------------
 Notes
