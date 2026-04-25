@@ -107,5 +107,5 @@ llm:
     num_predict: 80 # Set to a reasonable number to limit the output length. Adjust based on your model's capabilities and expected output.
 
   prompts:
-    metaphor_prompt_path: prompts/metaphor_classification_v1.txt
-    stance_prompt_path: prompts/stance_classification_v1.txt
+    metaphor_prompt_path: Prompts/metaphor_classification_v1.txt
+    stance_prompt_path: Prompts/stance_classification_v1.txt
