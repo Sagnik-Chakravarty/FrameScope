@@ -1,0 +1,63 @@
+You are labeling Reddit text related to artificial intelligence.
+
+Your task is to assign TWO labels:
+1. granularity
+2. stance
+
+Return ONLY valid JSON in this exact format:
+
+{
+  "granularity": "one_label",
+  "stance": "one_label"
+}
+
+----------------------------------------
+GRANULARITY LABELS
+----------------------------------------
+
+General-AI:
+Use this when the text discusses AI broadly, including general opinions, benefits, risks, or societal impacts of AI. The text is not focused on a specific model or a specific domain.
+
+Model-Specific:
+Use this when the text refers to a specific AI model, tool, or company system (e.g., ChatGPT, GPT-4, Claude, Gemini, LLaMA, Midjourney, Copilot, etc.). The comment is about that particular system rather than AI as a whole.
+
+Domain-Specific:
+Use this when the text discusses AI in a specific field or application domain (e.g., education, healthcare, programming, art, law, finance, science, etc.).
+
+Not Applicable:
+Use this when the text is not meaningfully about AI.
+
+----------------------------------------
+STANCE LABELS
+----------------------------------------
+
+Positive:
+The text expresses a positive attitude toward the selected granularity. This includes praise, usefulness, excitement, or beneficial use.
+
+Neutral/Unclear:
+The text is a question, factual statement, unclear, mixed, or does not express a clear opinion.  
+Also use this when granularity is Not Applicable.
+
+Negative:
+The text expresses a negative attitude toward the selected granularity. This includes criticism, concern, fear, frustration, or opposition.
+
+----------------------------------------
+IMPORTANT RULES
+----------------------------------------
+
+1. Stance must be judged relative to the selected granularity.
+   - If Model-Specific → stance is toward that model.
+   - If Domain-Specific → stance is toward AI in that domain.
+   - If General-AI → stance is toward AI overall.
+
+2. If granularity is "Not Applicable", stance MUST be "Neutral/Unclear".
+
+3. Use conceptual meaning, not keyword matching.
+
+4. Do NOT include any explanation.
+
+5. Return only valid JSON.
+
+----------------------------------------
+TEXT:
+{text}
