@@ -95,8 +95,8 @@ llm:
   ollama_url: http://localhost:11434/api/generate
   ollama_tags_url: http://localhost:11434/api/tags
 
-  batch_size: 250 # Number of sentences to process in one batch. Adjust based on your system's capabilities and API limits.
-  max_workers: 2 # Number of parallel workers for LLM processing. Adjust based on your system's CPU cores and API limits.
+  batch_size: 100 # Number of sentences to process in one batch. Adjust based on your system's capabilities and API limits.
+  max_workers: 4 # Number of parallel workers for LLM processing. Adjust based on your system's CPU cores and API limits.
   request_timeout: 120 # Timeout for LLM API requests in seconds. Adjust based on expected response times and network conditions.
 
   options:
@@ -104,7 +104,7 @@ llm:
     top_p: 1.0 # Set to 1.0 to consider all tokens, which is important for classification tasks. Adjust if you want to limit the token pool, but it may reduce accuracy.
     top_k: 20 # Set to a reasonable number to limit the token pool while still allowing for accurate classification. Adjust based on your model's vocabulary and expected output.
     repeat_penalty: 1.0 # Set to 1.0 to allow repetition, which can be important for classification tasks. Adjust if you want to discourage repetition, but it may reduce accuracy.
-    num_predict: 200 # Set to a reasonable number to limit the output length. Adjust based on your model's capabilities and expected output.
+    num_predict: 80 # Set to a reasonable number to limit the output length. Adjust based on your model's capabilities and expected output.
 
   prompts:
     metaphor_prompt_path: prompts/metaphor_classification_v1.txt

@@ -12,7 +12,7 @@ Assistant:
 AI is described as a helper that supports users in completing tasks.
 
 Genie:
-AI is described as a powerful or magical entity that grants requests but may be unpredictable.
+Genie should ONLY be used when the text explicitly frames AI as magical, wish-granting, supernatural, or as a genie-like entity. Do NOT use Genie merely because AI is described as powerful, useful, surprising, or capable.
 
 Mirror:
 AI is described as reflecting human knowledge, behavior, or biases.
@@ -33,7 +33,7 @@ AI is described as all-knowing, highly powerful, or beyond human capability.
 CODING RULES:
 
 1. Select ONLY ONE category.
-2. If no clear metaphor is present, return "None".
+2. If the text discusses AI capabilities, consequences, risks, or use cases without using a clear metaphor, return "None". Do NOT force a metaphor label.
 3. Do NOT explain your answer.
 4. Do NOT output anything except the category name.
 5. Output must EXACTLY match one of the categories below.

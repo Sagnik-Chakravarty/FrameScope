@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 import json
 import logging
 import re
@@ -7,8 +8,10 @@ import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 from typing import Any
+
 import requests
 import yaml
+from tqdm import tqdm
 
 
 logging.basicConfig(
@@ -22,15 +25,8 @@ DB_PATH = Path("data/database/framescope.db")
 
 
 VALID_METAPHORS = {
-    "Tool",
-    "Assistant",
-    "Genie",
-    "Mirror",
-    "Child",
-    "Friend",
-    "Animal",
-    "God",
-    "None",
+    "Tool", "Assistant", "Genie", "Mirror",
+    "Child", "Friend", "Animal", "God", "None",
 }
 
 VALID_GRANULARITY = {
@@ -65,35 +61,6 @@ def connect_db(db_path: Path) -> sqlite3.Connection:
     return conn
 
 
-def ensure_label_schema(conn: sqlite3.Connection) -> None:
-    conn.executescript(
-        """
-        CREATE TABLE IF NOT EXISTS llm_labels (
-            source TEXT NOT NULL,
-            sentence_id TEXT NOT NULL,
-            metaphor_category TEXT,
-            metaphor_present INTEGER,
-            granularity TEXT,
-            stance TEXT,
-            confidence REAL,
-            reasoning TEXT,
-            model_name TEXT,
-            labeled_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            PRIMARY KEY (source, sentence_id)
-        );
-        """
-    )
-
-    existing_cols = {
-        row[1] for row in conn.execute("PRAGMA table_info(llm_labels);").fetchall()
-    }
-
-    if "granularity" not in existing_cols:
-        conn.execute("ALTER TABLE llm_labels ADD COLUMN granularity TEXT;")
-
-    conn.commit()
-
-
 def load_prompt(path: Path) -> str:
     if not path.exists():
         raise FileNotFoundError(f"Missing prompt file: {path}")
@@ -109,9 +76,41 @@ def check_ollama(tags_url: str) -> None:
         raise RuntimeError("Ollama is not running. Start it with: ollama serve") from exc
 
 
+def count_total_sentence_rows(conn: sqlite3.Connection) -> int:
+    query = """
+        SELECT COUNT(*)
+        FROM reddit_sentence_items
+        WHERE source = ?;
+    """
+    return conn.execute(query, (SOURCE,)).fetchone()[0]
+
+
+def count_labeled_rows(conn: sqlite3.Connection) -> int:
+    query = """
+        SELECT COUNT(*)
+        FROM llm_labels
+        WHERE source = ?;
+    """
+    return conn.execute(query, (SOURCE,)).fetchone()[0]
+
+
+def count_unlabeled_rows(conn: sqlite3.Connection) -> int:
+    query = """
+        SELECT COUNT(*)
+        FROM reddit_sentence_items r
+        LEFT JOIN llm_labels l
+            ON r.source = l.source
+            AND r.sentence_id = l.sentence_id
+        WHERE r.source = ?
+          AND l.sentence_id IS NULL;
+    """
+    return conn.execute(query, (SOURCE,)).fetchone()[0]
+
+
 def fetch_unlabeled_rows(conn: sqlite3.Connection, limit: int) -> list[dict[str, Any]]:
     query = """
         SELECT
+            r.source,
             r.sentence_id,
             r.preceding_sentence,
             r.ai_sentence,
@@ -122,9 +121,10 @@ def fetch_unlabeled_rows(conn: sqlite3.Connection, limit: int) -> list[dict[str,
             r.score
         FROM reddit_sentence_items r
         LEFT JOIN llm_labels l
-            ON r.sentence_id = l.sentence_id
-            AND l.source = ?
-        WHERE l.sentence_id IS NULL
+            ON r.source = l.source
+            AND r.sentence_id = l.sentence_id
+        WHERE r.source = ?
+          AND l.sentence_id IS NULL
         ORDER BY r.created_utc ASC
         LIMIT ?;
     """
@@ -133,14 +133,15 @@ def fetch_unlabeled_rows(conn: sqlite3.Connection, limit: int) -> list[dict[str,
 
     return [
         {
-            "sentence_id": row[0],
-            "preceding_sentence": row[1],
-            "ai_sentence": row[2],
-            "subsequent_sentence": row[3],
-            "context_text": row[4],
-            "subreddit": row[5],
-            "created_utc": row[6],
-            "score": row[7],
+            "source": row[0],
+            "sentence_id": row[1],
+            "preceding_sentence": row[2],
+            "ai_sentence": row[3],
+            "subsequent_sentence": row[4],
+            "context_text": row[5],
+            "subreddit": row[6],
+            "created_utc": row[7],
+            "score": row[8],
         }
         for row in rows
     ]
@@ -162,11 +163,12 @@ def build_context_text(row: dict[str, Any]) -> str:
     return str(fallback).strip()
 
 
-def build_combined_prompt(
-    text: str,
+def build_prompt_parts(
     metaphor_template: str,
     stance_template: str,
-) -> str:
+) -> tuple[str, str]:
+    placeholder = "__FRAMESCOPE_TEXT_PLACEHOLDER__"
+
     prompt = f"""
 You are labeling Reddit text related to artificial intelligence.
 
@@ -201,9 +203,14 @@ Rules:
   - dominant_metaphor: "None"
 
 TEXT:
-{text}
+{placeholder}
 """
-    return prompt.replace("{text}", text).replace("{input_text}", text)
+
+    return prompt.split(placeholder, maxsplit=1)
+
+
+def build_combined_prompt(text: str, prompt_prefix: str, prompt_suffix: str) -> str:
+    return f"{prompt_prefix}{text}{prompt_suffix}"
 
 
 def call_ollama(
@@ -212,6 +219,8 @@ def call_ollama(
     model_name: str,
     llm_options: dict[str, Any],
     request_timeout: int,
+    max_retries: int = 1,
+    retry_backoff_seconds: float = 0.5,
 ) -> str:
     payload = {
         "model": model_name,
@@ -220,14 +229,23 @@ def call_ollama(
         "options": llm_options,
     }
 
-    response = requests.post(
-        ollama_url,
-        json=payload,
-        timeout=request_timeout,
-    )
-    response.raise_for_status()
+    attempts = max_retries + 1
 
-    return response.json().get("response", "").strip()
+    for attempt in range(attempts):
+        try:
+            response = requests.post(
+                ollama_url,
+                json=payload,
+                timeout=request_timeout,
+            )
+            response.raise_for_status()
+            return response.json().get("response", "").strip()
+        except requests.RequestException:
+            if attempt == attempts - 1:
+                raise
+            time.sleep(retry_backoff_seconds * (2 ** attempt))
+
+    return ""
 
 
 def extract_json(raw: str) -> dict[str, Any]:
@@ -334,17 +352,12 @@ def parse_combined_output(raw_output: str) -> tuple[str, str, str, dict[str, Any
 
 def label_one_row(
     row: dict[str, Any],
-    metaphor_prompt_template: str,
-    stance_prompt_template: str,
+    prompt_prefix: str,
+    prompt_suffix: str,
     llm_config: dict[str, Any],
 ) -> dict[str, Any]:
     text = build_context_text(row)
-
-    combined_prompt = build_combined_prompt(
-        text=text,
-        metaphor_template=metaphor_prompt_template,
-        stance_template=stance_prompt_template,
-    )
+    combined_prompt = build_combined_prompt(text, prompt_prefix, prompt_suffix)
 
     try:
         start = time.time()
@@ -355,14 +368,15 @@ def label_one_row(
             model_name=llm_config["model_name"],
             llm_options=llm_config["options"],
             request_timeout=int(llm_config["request_timeout"]),
+            max_retries=int(llm_config.get("max_retries", 1)),
+            retry_backoff_seconds=float(llm_config.get("retry_backoff_seconds", 0.5)),
         )
 
         latency = time.time() - start
-
         metaphor, granularity, stance, parsed = parse_combined_output(raw_output)
 
         return {
-            "source": SOURCE,
+            "source": row.get("source", SOURCE),
             "sentence_id": row["sentence_id"],
             "metaphor_category": metaphor,
             "metaphor_present": 0 if metaphor == "None" else 1,
@@ -379,7 +393,7 @@ def label_one_row(
 
     except Exception as exc:
         return {
-            "source": SOURCE,
+            "source": row.get("source", SOURCE),
             "sentence_id": row["sentence_id"],
             "metaphor_category": "None",
             "metaphor_present": 0,
@@ -411,7 +425,6 @@ def insert_labels(conn: sqlite3.Connection, labeled_rows: list[dict[str, Any]]) 
             r["model_name"],
         )
         for r in labeled_rows
-        if r.get("error") is None
     ]
 
     conn.executemany(
@@ -433,7 +446,6 @@ def insert_labels(conn: sqlite3.Connection, labeled_rows: list[dict[str, Any]]) 
     )
 
     conn.commit()
-
     return conn.total_changes - before
 
 
@@ -455,15 +467,46 @@ def log_errors(labeled_rows: list[dict[str, Any]]) -> None:
     logging.warning("Logged %s errors to %s", len(errors), path)
 
 
+def log_pipeline_run(
+    conn: sqlite3.Connection,
+    stage: str,
+    n_records: int,
+    status: str,
+    message: str,
+) -> None:
+    conn.execute(
+        """
+        INSERT INTO pipeline_runs (
+            source,
+            run_folder,
+            stage,
+            n_records,
+            status,
+            message
+        )
+        VALUES (?, ?, ?, ?, ?, ?);
+        """,
+        (
+            SOURCE,
+            None,
+            stage,
+            n_records,
+            status,
+            message,
+        ),
+    )
+    conn.commit()
+
+
 def process_batch(
     conn: sqlite3.Connection,
     rows: list[dict[str, Any]],
-    metaphor_prompt_template: str,
-    stance_prompt_template: str,
+    prompt_prefix: str,
+    prompt_suffix: str,
     llm_config: dict[str, Any],
+    progress_bar: tqdm | None = None,
 ) -> int:
     labeled_rows: list[dict[str, Any]] = []
-
     max_workers = int(llm_config.get("max_workers", 2))
 
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
@@ -471,8 +514,8 @@ def process_batch(
             executor.submit(
                 label_one_row,
                 row,
-                metaphor_prompt_template,
-                stance_prompt_template,
+                prompt_prefix,
+                prompt_suffix,
                 llm_config,
             )
             for row in rows
@@ -480,6 +523,9 @@ def process_batch(
 
         for future in as_completed(futures):
             labeled_rows.append(future.result())
+
+            if progress_bar is not None:
+                progress_bar.update(1)
 
     inserted = insert_labels(conn, labeled_rows)
     log_errors(labeled_rows)
@@ -499,46 +545,96 @@ def main() -> None:
     metaphor_prompt_template = load_prompt(metaphor_prompt_path)
     stance_prompt_template = load_prompt(stance_prompt_path)
 
+    prompt_prefix, prompt_suffix = build_prompt_parts(
+        metaphor_template=metaphor_prompt_template,
+        stance_template=stance_prompt_template,
+    )
+
     conn = connect_db(DB_PATH)
-    ensure_label_schema(conn)
 
     batch_size = int(llm_config.get("batch_size", 250))
 
-    total_seen = 0
+    total_rows = count_total_sentence_rows(conn)
+    already_labeled = count_labeled_rows(conn)
+    remaining_rows = count_unlabeled_rows(conn)
+
+    logging.info(
+        "Resume status | total_sentence_rows=%s | already_labeled=%s | remaining=%s",
+        total_rows,
+        already_labeled,
+        remaining_rows,
+    )
+
+    print(
+        f"\nStarting LLM labeling from {already_labeled:,} already-labeled rows "
+        f"out of {total_rows:,}. Remaining: {remaining_rows:,}.\n"
+    )
+
     total_inserted = 0
+    total_seen = 0
 
-    while True:
-        rows = fetch_unlabeled_rows(conn, batch_size)
+    with tqdm(
+        total=remaining_rows,
+        initial=0,
+        desc="Labeling unlabeled sentences",
+        unit="row",
+    ) as progress_bar:
 
-        if not rows:
-            break
+        while True:
+            rows = fetch_unlabeled_rows(conn, batch_size)
 
-        total_seen += len(rows)
+            if not rows:
+                break
 
-        logging.info("Labeling batch | rows=%s", len(rows))
+            total_seen += len(rows)
 
-        inserted = process_batch(
-            conn=conn,
-            rows=rows,
-            metaphor_prompt_template=metaphor_prompt_template,
-            stance_prompt_template=stance_prompt_template,
-            llm_config=llm_config,
-        )
+            logging.info("Labeling batch | rows=%s", len(rows))
 
-        total_inserted += inserted
+            inserted = process_batch(
+                conn=conn,
+                rows=rows,
+                prompt_prefix=prompt_prefix,
+                prompt_suffix=prompt_suffix,
+                llm_config=llm_config,
+                progress_bar=progress_bar,
+            )
 
-        logging.info(
-            "Batch complete | inserted=%s | total_inserted=%s",
-            inserted,
-            total_inserted,
-        )
+            total_inserted += inserted
+
+            logging.info(
+                "Batch complete | inserted=%s | total_inserted_this_run=%s",
+                inserted,
+                total_inserted,
+            )
+
+    log_pipeline_run(
+        conn=conn,
+        stage="label_llm",
+        n_records=total_inserted,
+        status="success",
+        message=(
+            f"Labeled {total_inserted} new sentence records using "
+            f"{llm_config['model_name']}. Previously labeled: {already_labeled}. "
+            f"Remaining at start: {remaining_rows}."
+        ),
+    )
+
+    final_labeled = count_labeled_rows(conn)
+    final_remaining = count_unlabeled_rows(conn)
 
     conn.close()
 
     logging.info(
-        "LLM labeling complete | rows_seen=%s | rows_inserted=%s",
+        "LLM labeling complete | rows_seen_this_run=%s | rows_inserted_this_run=%s | total_labeled_now=%s | remaining_now=%s",
         total_seen,
         total_inserted,
+        final_labeled,
+        final_remaining,
+    )
+
+    print(
+        f"\nDone. Inserted this run: {total_inserted:,}. "
+        f"Total labeled now: {final_labeled:,}. Remaining: {final_remaining:,}.\n"
     )
 
 
