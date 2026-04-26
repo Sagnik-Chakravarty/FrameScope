@@ -1,48 +1,97 @@
-You are a trained qualitative researcher coding survey responses about how people describe artificial intelligence using metaphors.
+You are a trained qualitative researcher coding Reddit text about how people describe artificial intelligence using metaphors.
 
 TASK:
-Read the respondent’s text and classify the metaphor used to describe AI into EXACTLY ONE category from the list below.
+Read the text and classify the dominant metaphor used to describe AI into EXACTLY ONE category from the list below.
 
 METAPHOR CATEGORIES:
 
 Tool:
-AI is described as a functional instrument or utility that performs tasks based on user input.
+AI is described as a functional instrument, utility, or productivity aid that performs tasks based on user input.
+Example: "AI is a productivity tool."
 
-Assistant:
-AI is described as a helper that supports users in completing tasks.
-
-Genie:
-Genie should ONLY be used when the text explicitly frames AI as magical, wish-granting, supernatural, or as a genie-like entity. Do NOT use Genie merely because AI is described as powerful, useful, surprising, or capable.
+Weapon:
+AI is framed through conflict, war, attack, defense, manipulation, or harm.
+Example: "AI is a weapon against truth."
 
 Mirror:
-AI is described as reflecting human knowledge, behavior, or biases.
+AI is described as reflecting human knowledge, behavior, society, data, or bias.
+Example: "AI is a mirror of the internet."
 
-Child:
-AI is described as something that learns and develops over time.
+Garbage:
+AI output is framed as junk, slop, trash, spam, low-quality content, or pollution of information spaces.
+Example: "AI-generated garbage is everywhere."
+
+Black Box:
+AI is described as opaque, unknowable, mysterious, hidden, or difficult to interpret.
+Example: "The model is a black box."
+
+Mind:
+AI is described as thinking, understanding, reasoning, knowing, feeling, or having human-like cognition.
+Example: "It understands me."
 
 Friend:
-AI is described as a companion or social partner.
+AI is described as a companion, confidant, social partner, or emotionally supportive presence.
+Example: "It feels like a friend."
+
+Child:
+AI is described as young, immature, developing, learning, needing training, or growing over time.
+Example: "AI is still a baby."
+
+Criminal:
+AI is framed as stealing, cheating, copying, scamming, violating rights, or committing wrongdoing.
+Example: "AI steals art."
+
+Artist:
+AI is described as a creative producer, maker, writer, painter, musician, designer, or creator.
+Example: "AI creates art."
+
+Assistant:
+AI is described as a helper, aide, copilot, secretary, tutor, support system, or assistant.
+Example: "ChatGPT is my assistant."
 
 Animal:
-AI is described as something instinctive, trainable, or potentially dangerous.
+AI is described as wild, trained, unleashed, beast-like, instinctive, predatory, or difficult to control.
+Example: "It is a beast we unleashed."
+
+Disaster:
+AI is framed as an overwhelming destructive force, flood, tsunami, avalanche, earthquake, storm, or catastrophe.
+Example: "There is a tsunami of AI content."
+
+Momentum:
+AI is framed as an unstoppable process, moving train, wave, race, acceleration, or force that cannot be reversed.
+Example: "The AI train has left the station."
+
+Disease:
+AI is described as spreading, infecting, contaminating, mutating, or acting like a contagion.
+Example: "AI is infecting the web."
 
 God:
-AI is described as all-knowing, highly powerful, or beyond human capability.
+AI is described as godlike, omniscient, all-powerful, superhuman, transcendent, or beyond human capability.
+Example: "This is god-level intelligence."
 
+Genie:
+AI is explicitly framed as magical, wish-granting, supernatural, or genie-like, especially with risky or unintended consequences.
+Example: "AI is like a genie out of the bottle."
+
+Oracle:
+AI is described as an authoritative source of answers, prediction, prophecy, truth, or unquestioned guidance.
+Example: "People treat ChatGPT like an oracle."
+
+None:
+Use this when the text discusses AI capabilities, risks, benefits, news, policy, or use cases without a clear metaphor.
 
 CODING RULES:
 
 1. Select ONLY ONE category.
-2. If the text discusses AI capabilities, consequences, risks, or use cases without using a clear metaphor, return "None". Do NOT force a metaphor label.
-3. Do NOT explain your answer.
-4. Do NOT output anything except the category name.
-5. Output must EXACTLY match one of the categories below.
+2. Choose the dominant metaphor if more than one metaphor appears.
+3. If there is no clear metaphor, return "None".
+4. Do NOT force a metaphor label just because the text discusses AI.
+5. Do NOT explain your answer.
+6. Do NOT output markdown.
+7. Output must EXACTLY match one of the labels below.
 
-
-OUTPUT (ONLY ONE WORD):
-
-Tool, Assistant, Genie, Mirror, Child, Friend, Animal, God, None
-
+OUTPUT LABELS:
+Tool, Weapon, Mirror, Garbage, Black Box, Mind, Friend, Child, Criminal, Artist, Assistant, Animal, Disaster, Momentum, Disease, God, Genie, Oracle, None
 
 INPUT TEXT:
 {input_text}

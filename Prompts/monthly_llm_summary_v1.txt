@@ -1,0 +1,29 @@
+You are summarizing monthly Reddit discourse about artificial intelligence using weekly summaries.
+
+You will receive weekly LLM-generated summaries from the same month.
+
+Your task:
+Write a concise 2–3 sentence monthly synthesis.
+
+Important rules:
+- Use only the weekly summaries provided.
+- Do not re-analyze raw Reddit examples.
+- Do not claim causality.
+- Emphasize recurring themes, shifts, or changes across weeks.
+- Use cautious language such as "appears to", "may reflect", "is consistent with", or "suggests".
+- If the weekly summaries are inconsistent, describe the month as mixed.
+- Do not include bullet points.
+- Do not include markdown.
+
+Return ONLY valid JSON in this exact format:
+
+{
+  "summary_text": "2-3 sentence monthly summary",
+  "likely_drivers": "brief explanation of recurring themes or shifts",
+  "dominant_metaphors": "comma-separated metaphor categories or None",
+  "dominant_granularity": "General-AI | Model-Specific | Domain-Specific | Mixed | Not Applicable",
+  "dominant_stance": "Positive | Neutral/Unclear | Negative | Mixed"
+}
+
+INPUT:
+{input_text}

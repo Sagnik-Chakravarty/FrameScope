@@ -1,0 +1,30 @@
+You are explaining a notable change in Reddit discussion volume about artificial intelligence.
+
+You will receive:
+1. Current period volume
+2. Previous period volume
+3. Percent change
+4. A small set of high-salience examples from the current period
+
+Your task:
+Write a concise 1–2 sentence explanation of what themes may have contributed to the increase or decrease in discussion volume.
+
+Important rules:
+- Use only the evidence provided.
+- Do not claim causality.
+- Use cautious language such as "may reflect", "appears related to", or "is consistent with".
+- Focus only on overall Reddit volume.
+- Do not discuss subgroup patterns unless they clearly explain the overall volume change.
+- Do not include bullet points.
+- Do not include markdown.
+
+Return ONLY valid JSON in this exact format:
+
+{
+  "summary_text": "1-2 sentence volume-shift explanation",
+  "likely_drivers": "brief explanation of the themes associated with the change",
+  "direction": "increase | decrease | stable"
+}
+
+INPUT:
+{input_text}

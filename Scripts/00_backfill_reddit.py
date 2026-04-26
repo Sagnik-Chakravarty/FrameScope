@@ -18,49 +18,32 @@ logging.basicConfig(
 RAW_DIR = Path("data/raw/reddit")
 
 SUBREDDITS = [
-    "news",
-    "politics",
-    "worldpolitics",
-    "cryptocurrency",
-    "technology",
-    "askreddit",
-    "moviecritic",
-    "art",
-    "artistlounge",
-    "nostupidquestions",
-    "antiwork",
+    "news", "politics", "worldpolitics", "cryptocurrency", "technology", 
+    "askreddit", "moviecritic", "art", "artistlounge", "nostupidquestions", 
+    "antiwork", "artificial", "artificialintelligence", "defendingaiart", 
+    "cogsci", "generativeai", "transhumanism", "uncannyvalley", "antiai", 
+    "automation", "agi", "aiart", "chatgpt", "translation", "askhistorians", 
+    "geopolitics", "screenwriting", "writing", "talesfromyourserver", 
+    "nursing", "homeimprovement"]
+
+ai_keywords = [
+    "AI", "artificial intelligence", "machine learning", "deep learning", 
+    "neural network", "neural networks", "LLM", "LLMs", "large language model", 
+    "large language models", "language model", "ChatGPT", "GPT", "GPT-4", 
+    "Claude", "Gemini", "Copilot", "Midjourney", "DALL-E", "Sora", "OpenAI", 
+    "Anthropic", "Google AI", "Meta AI", "Microsoft AI", "Stability AI", 
+    "Sam Altman", "Elon Musk", "Mark Zuckerberg", "Sundar Pichai", 
+    "Satya Nadella", "Demis Hassabis", "Dario Amodei", "Ilya Sutskever", 
+    "generative AI", "AGI", "Artificial General Intelligence", "AI model", 
+    "AI system", "AI tools", "AI assistant", "AI chatbot", "deepfake", 
+    "deep fake", "AI generated", "AI content", "AI art", "AI video", 
+    "AI images", "AI writing", "AI coding", "AI regulation", "AI safety", 
+    "AI alignment", "AI risk", "AI takeover", "AI replacing jobs", 
+    "AI layoffs", "automation jobs"
 ]
 
-KEYWORDS = [
-    "AI",
-    "Deep Fake",
-    "Artificial Intelligence",
-    "Chat GPT",
-    "Open AI",
-    "LLAMA",
-    "Claude",
-    "Anthropic",
-    "Sora",
-    "Sam Altman",
-    "language model",
-    "Machine Learning",
-    "ChatGPT",
-    "OpenAI",
-    "LLM",
-    "LLMs",
-    "generative AI",
-    "GenAI",
-    "deepfake",
-    "deepfakes",
-    "machine learning",
-    "ML",
-    "large language model",
-    "large language models",
-    "AGI",
-]
-
-BACKFILL_START = datetime(2023, 1, 1, tzinfo=timezone.utc)
-BACKFILL_END = datetime(2026, 4, 21, tzinfo=timezone.utc)
+BACKFILL_START = datetime(2020, 1, 1, tzinfo=timezone.utc)
+BACKFILL_END = datetime(2020, 4, 21, tzinfo=timezone.utc)
 
 STEP_HOURS = 24
 LIMIT = 100

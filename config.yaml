@@ -11,12 +11,104 @@ reddit:
     - artistlounge
     - nostupidquestions
     - antiwork
+    - artificial
+    - artificialintelligence
+    - defendingaiart
+    - cogsci
+    - generativeai
+    - transhumanism
+    - uncannyvalley
+    - antiai
+    - automation
+    - agi
+    - aiart
+    - chatgpt
+    - translation
+    - askhistorians
+    - geopolitics
+    - screenwriting
+    - writing
+    - talesfromyourserver
+    - nursing
+    - homeimprovement
 
   lookback_days: 7 # How many days back to fetch posts from. Adjust as needed.
   freshness_lag_hours: 48 # Avoid the most recent ~48 hours to ensure complete data (score/comments).
   step_hours: 24 # Fetch posts in 24-hour windows to manage API limits and data completeness.
   limit: 100 # Max posts per window. Adjust based on expected volume and API limits.
+  keywords:
+  # --- Core AI terms ---
+    - "AI"
+    - "artificial intelligence"
+    - "machine learning"
+    - "deep learning"
+    - "neural network"
+    - "neural networks"
+    - "LLM"
+    - "LLMs"
+    - "large language model"
+    - "large language models"
+    - "language model"
 
+    # --- Popular models/tools ---
+    - "ChatGPT"
+    - "GPT"
+    - "GPT-4"
+    - "Claude"
+    - "Gemini"
+    - "Copilot"
+    - "Midjourney"
+    - "DALL-E"
+    - "Sora"
+
+    # --- Companies / ecosystems ---
+    - "OpenAI"
+    - "Anthropic"
+    - "Google AI"
+    - "Meta AI"
+    - "Microsoft AI"
+    - "Stability AI"
+
+    # --- Key people (high signal for events/news) ---
+    - "Sam Altman"
+    - "Elon Musk"
+    - "Mark Zuckerberg"
+    - "Sundar Pichai"
+    - "Satya Nadella"
+    - "Demis Hassabis"
+    - "Dario Amodei"
+    - "Ilya Sutskever"
+
+    # --- Core concepts ---
+    - "generative AI"
+    - "AGI"
+    - "Artificial General Intelligence"
+    - "AI model"
+    - "AI system"
+    - "AI tools"
+    - "AI assistant"
+    - "AI chatbot"
+
+    # --- High-signal topics (very important for weekly shifts) ---
+    - "deepfake"
+    - "deep fake"
+    - "AI generated"
+    - "AI content"
+    - "AI art"
+    - "AI video"
+    - "AI images"
+    - "AI writing"
+    - "AI coding"
+
+    # --- Risk / policy / discourse triggers ---
+    - "AI regulation"
+    - "AI safety"
+    - "AI alignment"
+    - "AI risk"
+    - "AI takeover"
+    - "AI replacing jobs"
+    - "AI layoffs"
+    - "automation jobs"
 storage:
   archive_dry_run: true
 
@@ -109,3 +201,40 @@ llm:
   prompts:
     metaphor_prompt_path: Prompts/metaphor_classification_v1.txt
     stance_prompt_path: Prompts/stance_classification_v1.txt
+
+summary_llm:
+  provider: ollama
+  model_name: llama3.2
+  ollama_url: http://localhost:11434/api/generate
+  ollama_tags_url: http://localhost:11434/api/tags
+
+  request_timeout: 180
+  max_retries: 2
+  retry_backoff_seconds: 1.0
+
+  options:
+    temperature: 0.0
+    top_p: 1.0
+    top_k: 20
+    repeat_penalty: 1.0
+    num_predict: 250
+
+  weekly:
+    top_n_examples: 10
+    min_examples_for_summary: 3
+    prompt_path: Prompts/weekly_llm_summary_v1.txt
+
+  monthly:
+    min_weekly_summaries: 2
+    prompt_path: Prompts/monthly_llm_summary_v1.txt
+
+  yearly:
+    min_monthly_summaries: 2
+    prompt_path: Prompts/yearly_llm_summary_v1.txt
+
+  volume_shift:
+    enabled: true
+    min_pct_change: 30
+    min_absolute_change: 25
+    top_n_examples: 10
+    prompt_path: Prompts/volume_shift_summary_v1.txt

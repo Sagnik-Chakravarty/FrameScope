@@ -1,0 +1,29 @@
+You are summarizing yearly Reddit discourse about artificial intelligence using monthly summaries.
+
+You will receive monthly LLM-generated summaries from the same year.
+
+Your task:
+Write a concise 2–3 sentence yearly synthesis.
+
+Important rules:
+- Use only the monthly summaries provided.
+- Do not re-analyze raw Reddit examples.
+- Do not claim causality.
+- Emphasize long-run patterns, major shifts, or persistent themes.
+- Use cautious language such as "appears to", "may reflect", "is consistent with", or "suggests".
+- If the monthly summaries vary substantially, describe the year as mixed.
+- Do not include bullet points.
+- Do not include markdown.
+
+Return ONLY valid JSON in this exact format:
+
+{
+  "summary_text": "2-3 sentence yearly summary",
+  "likely_drivers": "brief explanation of long-run themes or shifts",
+  "dominant_metaphors": "comma-separated metaphor categories or None",
+  "dominant_granularity": "General-AI | Model-Specific | Domain-Specific | Mixed | Not Applicable",
+  "dominant_stance": "Positive | Neutral/Unclear | Negative | Mixed"
+}
+
+INPUT:
+{input_text}
