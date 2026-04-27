@@ -8,7 +8,11 @@ APP_ICON = "📊"
 
 @st.cache_resource
 def get_engine():
-    neon_url = st.secrets["NeonDb"]
+    neon_url = st.secrets.get("NeonDb")
+
+    if not neon_url:
+        st.error("NeonDb secret not found. Add it in Streamlit Cloud → Settings → Secrets.")
+        st.stop()
     return create_engine(neon_url, pool_pre_ping=True)
 
 
