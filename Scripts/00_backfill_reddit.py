@@ -2,11 +2,17 @@ from __future__ import annotations
 
 import json
 import logging
+import sys
+from concurrent.futures import ProcessPoolExecutor, as_completed
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
 import yaml
+
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
 
 from arcshiftwrap.arctic_shift import (
     ArcticShiftClient,
@@ -22,7 +28,7 @@ CONFIG_PATH = Path("config.yaml")
 RAW_DIR = Path("data/raw/reddit")
 
 BACKFILL_START = datetime(2020, 1, 1, tzinfo=timezone.utc)
-BACKFILL_END = datetime(2020, 4, 21, tzinfo=timezone.utc)
+BACKFILL_END = datetime(2026, 4, 21, tzinfo=timezone.utc)
 
 STEP_HOURS = 24
 LIMIT = 100
@@ -89,6 +95,44 @@ def month_windows(start: datetime, end: datetime):
         current = next_month
 
 
+def backfill_subreddit_month(
+    subreddit: str,
+    run_label: str,
+    window_start: datetime,
+    window_end: datetime,
+    keywords: list[str],
+    step_hours: int,
+    limit: int,
+    api_sleep_seconds: float,
+    api_max_retries: int,
+    api_timeout: int,
+) -> tuple[str, int, int]:
+    subreddit_clean = str(subreddit).lower().replace("r/", "")
+
+    client = ArcticShiftClient(
+        sleep_seconds=api_sleep_seconds,
+        max_retries=api_max_retries,
+        timeout=api_timeout,
+    )
+
+    posts = collect_posts_by_windows(
+        client=client,
+        subreddit=subreddit_clean,
+        start=window_start,
+        end=window_end,
+        step_hours=step_hours,
+        limit=limit,
+        fields=POST_FIELDS,
+    )
+
+    filtered_posts = keyword_filter(posts, keywords)
+
+    output_path = RAW_DIR / run_label / f"{subreddit_clean}_posts.json"
+    save_json(filtered_posts, output_path)
+
+    return subreddit_clean, len(posts), len(filtered_posts)
+
+
 def main() -> None:
     config = load_config(CONFIG_PATH)
 
@@ -108,57 +152,62 @@ def main() -> None:
 
     step_hours = int(reddit_config.get("step_hours", STEP_HOURS))
     limit = int(reddit_config.get("limit", LIMIT))
+    api_sleep_seconds = float(config.get("api", {}).get("sleep_seconds", 1.0))
+    api_max_retries = int(config.get("api", {}).get("max_retries", 4))
+    api_timeout = int(config.get("api", {}).get("timeout", 90))
 
-    client = ArcticShiftClient(
-        sleep_seconds=float(config.get("api", {}).get("sleep_seconds", 1.0)),
-        max_retries=int(config.get("api", {}).get("max_retries", 4)),
-        timeout=int(config.get("api", {}).get("timeout", 90)),
-    )
+    requested_workers = int(reddit_config.get("backfill_processes", len(subreddits)))
+    max_workers = max(1, min(requested_workers, len(subreddits)))
 
     logging.info("Starting POST-ONLY Reddit backfill")
     logging.info("Window: %s to %s", BACKFILL_START, BACKFILL_END)
     logging.info("Subreddits loaded from config: %s", len(subreddits))
     logging.info("Keywords loaded from config: %s", len(keywords))
+    logging.info("Backfill processes: %s", max_workers)
 
-    for window_start, window_end in month_windows(BACKFILL_START, BACKFILL_END):
-        run_label = f"backfill_{window_start.strftime('%Y-%m')}"
+    with ProcessPoolExecutor(max_workers=max_workers) as executor:
+        for window_start, window_end in month_windows(BACKFILL_START, BACKFILL_END):
+            run_label = f"backfill_{window_start.strftime('%Y-%m')}"
 
-        logging.info("Processing %s", run_label)
+            logging.info("Processing %s", run_label)
 
-        for subreddit in subreddits:
-            subreddit_clean = str(subreddit).lower().replace("r/", "")
-
-            try:
-                posts = collect_posts_by_windows(
-                    client=client,
-                    subreddit=subreddit_clean,
-                    start=window_start,
-                    end=window_end,
-                    step_hours=step_hours,
-                    limit=limit,
-                    fields=POST_FIELDS,
-                )
-
-                filtered_posts = keyword_filter(posts, keywords)
-
-                output_path = RAW_DIR / run_label / f"{subreddit_clean}_posts.json"
-                save_json(filtered_posts, output_path)
-
-                logging.info(
-                    "Saved r/%s | month=%s | total=%s | filtered=%s",
-                    subreddit_clean,
+            future_to_subreddit = {
+                executor.submit(
+                    backfill_subreddit_month,
+                    subreddit,
                     run_label,
-                    len(posts),
-                    len(filtered_posts),
-                )
+                    window_start,
+                    window_end,
+                    keywords,
+                    step_hours,
+                    limit,
+                    api_sleep_seconds,
+                    api_max_retries,
+                    api_timeout,
+                ): subreddit
+                for subreddit in subreddits
+            }
 
-            except Exception:
-                logging.exception(
-                    "Failed r/%s in %s. Skipping.",
-                    subreddit_clean,
-                    run_label,
-                )
-                continue
+            for future in as_completed(future_to_subreddit):
+                subreddit = future_to_subreddit[future]
+                subreddit_clean = str(subreddit).lower().replace("r/", "")
+
+                try:
+                    subreddit_name, total_posts, filtered_posts = future.result()
+                    logging.info(
+                        "Saved r/%s | month=%s | total=%s | filtered=%s",
+                        subreddit_name,
+                        run_label,
+                        total_posts,
+                        filtered_posts,
+                    )
+                except Exception:
+                    logging.exception(
+                        "Failed r/%s in %s. Skipping.",
+                        subreddit_clean,
+                        run_label,
+                    )
+                    continue
 
     logging.info("Backfill complete (posts only)")
 
