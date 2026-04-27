@@ -145,11 +145,12 @@ python3 Scripts/13_run_weekly_pipeline.py --skip-neon-upload
 | `Scripts/` | End-to-end pipeline stages and maintenance jobs |
 | `Notebooks/` | Benchmarking, analysis, and debugging notebooks |
 | `Docs/` | Project documentation and API notes |
+| `LLM results/` | Shareable benchmark inputs, outputs, evaluation CSVs, and GPT batch artifacts |
 | `plots/` | Generated charts and benchmark figures |
 | `Prompts/` | Prompt templates and label schema files |
 | `Setup/` | Environment bootstrap scripts and model installers |
 
-Generated data, database files, and other run artifacts are intentionally omitted from this overview because they are created locally and excluded from version control.
+Generated data, database files, and other run artifacts are intentionally omitted from this overview because they are created locally and excluded from version control. The top-level `LLM results/` directory is kept in version control so benchmark inputs and outputs remain easy to access.
 
 ## Setup
 

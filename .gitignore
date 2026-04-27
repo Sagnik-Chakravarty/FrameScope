@@ -35,6 +35,8 @@ processed/
 dist/
 .streamlit/secrets.toml
 Dashboard/.streamlit/secrets.toml
+!LLM results/
+!LLM results/**
 # Database
 *.db
 *.sqlite
