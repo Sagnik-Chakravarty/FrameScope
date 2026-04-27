@@ -7,7 +7,7 @@ __pycache__/
 venv/
 .vscode/
 *.egg-info/
-Dashboard/.streamlit/secrets.toml
+
 
 # Environment variables (secrets)
 .env
@@ -32,7 +32,8 @@ processed/
 *.jsonl
 *.parquet
 dist/
-
+.streamlit/secrets.toml
+Dashboard/.streamlit/secrets.toml
 # Database
 *.db
 *.sqlite
