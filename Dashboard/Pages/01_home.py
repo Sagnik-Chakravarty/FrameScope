@@ -43,6 +43,26 @@ STANCE_DEFINITIONS = {
 # HELPERS
 # --------------------------------------------------
 @st.cache_data(ttl=60)
+def get_latest_week_overall_summary(db_path: Path = DB_PATH) -> str:
+    conn = sqlite3.connect(db_path)
+
+    query = """
+    SELECT summary_text
+    FROM weekly_llm_summary
+    WHERE scope = 'overall'
+    ORDER BY week_start DESC
+    LIMIT 1;
+    """
+
+    df = pd.read_sql_query(query, conn)
+    conn.close()
+
+    if df.empty or pd.isna(df.loc[0, "summary_text"]):
+        return "No weekly summary available yet."
+
+    return str(df.loc[0, "summary_text"])
+
+@st.cache_data(ttl=60)
 def get_available_subreddits(db_path: Path = DB_PATH) -> list[str]:
     conn = sqlite3.connect(db_path)
 
@@ -638,11 +658,24 @@ def run_home_page(db_path: Path = DB_PATH) -> None:
     with left_col:
         st.title("FrameScope Home")
         st.subheader("Welcome to the FrameScope Dashboard")
+        latest_summary = get_latest_week_overall_summary(db_path)
+
         st.markdown(
-            """
-            This dashboard provides insights into AI discourse across Reddit.
-            """
-        )
+        f"""
+        <div style="
+            border-left: 4px solid #2563EB;
+            padding-left: 1rem;
+            margin-top: 0.5rem;
+            color: #374151;
+            font-style: italic;
+            text-align: justify;
+            line-height: 1.55;
+        ">
+            {html.escape(latest_summary)}
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
     with right_col:
         top_row_left, top_row_right = st.columns(2)
