@@ -10,5 +10,7 @@ python-dotenv
 openai
 streamlit
 plotly
+kaleido
 sqlalchemy
+psycopg2-binary
 scikit-learn
