@@ -1,9 +1,11 @@
 [theme]
 base="light"
-backgroundColor="white"
-secondaryBackgroundColor="lavender"
-codeBackgroundColor="powderBlue"
+primaryColor="#2563EB"  # blue (main fix)
+backgroundColor="#FFFFFF"
+secondaryBackgroundColor="#F5F7FA"
+textColor="#111827"
+font="sans serif"
 
 [theme.sidebar]
-backgroundColor="ghostWhite"
-secondaryBackgroundColor="lavender"
+backgroundColor="#F9FAFB"
+secondaryBackgroundColor="#EEF2FF"

@@ -413,6 +413,24 @@ def methodology_box(db_path: Path = DB_PATH) -> None:
         )
 
     with st.container(border=True, height=PANEL_OUTER_HEIGHT):
+        st.markdown(
+            """
+            <style>
+            .st-key-method_prev button,
+            .st-key-method_next button {
+                padding: 0 !important;
+                min-height: 2rem;
+            }
+
+            .st-key-method_prev button p,
+            .st-key-method_next button p {
+                margin: 0 !important;
+            }
+            </style>
+            """,
+            unsafe_allow_html=True,
+        )
+
         title_col, prev_col, next_col = st.columns([0.74, 0.13, 0.13])
 
         with title_col:

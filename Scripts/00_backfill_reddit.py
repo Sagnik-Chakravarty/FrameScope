@@ -4,6 +4,9 @@ import json
 import logging
 from datetime import datetime, timezone
 from pathlib import Path
+from typing import Any
+
+import yaml
 
 from arcshiftwrap.arctic_shift import (
     ArcticShiftClient,
@@ -15,32 +18,8 @@ logging.basicConfig(
     format="%(asctime)s | %(levelname)s | %(message)s",
 )
 
+CONFIG_PATH = Path("config.yaml")
 RAW_DIR = Path("data/raw/reddit")
-
-SUBREDDITS = [
-    "news", "politics", "worldpolitics", "cryptocurrency", "technology", 
-    "askreddit", "moviecritic", "art", "artistlounge", "nostupidquestions", 
-    "antiwork", "artificial", "artificialintelligence", "defendingaiart", 
-    "cogsci", "generativeai", "transhumanism", "uncannyvalley", "antiai", 
-    "automation", "agi", "aiart", "chatgpt", "translation", "askhistorians", 
-    "geopolitics", "screenwriting", "writing", "talesfromyourserver", 
-    "nursing", "homeimprovement"]
-
-ai_keywords = [
-    "AI", "artificial intelligence", "machine learning", "deep learning", 
-    "neural network", "neural networks", "LLM", "LLMs", "large language model", 
-    "large language models", "language model", "ChatGPT", "GPT", "GPT-4", 
-    "Claude", "Gemini", "Copilot", "Midjourney", "DALL-E", "Sora", "OpenAI", 
-    "Anthropic", "Google AI", "Meta AI", "Microsoft AI", "Stability AI", 
-    "Sam Altman", "Elon Musk", "Mark Zuckerberg", "Sundar Pichai", 
-    "Satya Nadella", "Demis Hassabis", "Dario Amodei", "Ilya Sutskever", 
-    "generative AI", "AGI", "Artificial General Intelligence", "AI model", 
-    "AI system", "AI tools", "AI assistant", "AI chatbot", "deepfake", 
-    "deep fake", "AI generated", "AI content", "AI art", "AI video", 
-    "AI images", "AI writing", "AI coding", "AI regulation", "AI safety", 
-    "AI alignment", "AI risk", "AI takeover", "AI replacing jobs", 
-    "AI layoffs", "automation jobs"
-]
 
 BACKFILL_START = datetime(2020, 1, 1, tzinfo=timezone.utc)
 BACKFILL_END = datetime(2020, 4, 21, tzinfo=timezone.utc)
@@ -61,6 +40,14 @@ POST_FIELDS = [
 ]
 
 
+def load_config(path: Path) -> dict[str, Any]:
+    if not path.exists():
+        raise FileNotFoundError(f"Missing config file: {path}")
+
+    with open(path, "r", encoding="utf-8") as f:
+        return yaml.safe_load(f) or {}
+
+
 def save_json(data: list[dict], path: Path) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -69,14 +56,17 @@ def save_json(data: list[dict], path: Path) -> None:
 
 
 def keyword_filter(items: list[dict], keywords: list[str]) -> list[dict]:
-    keywords_lower = [k.lower() for k in keywords]
+    if not keywords:
+        return items
+
+    keywords_lower = [k.lower() for k in keywords if str(k).strip()]
     filtered = []
 
     for item in items:
         text = (item.get("title") or "") + " " + (item.get("selftext") or "")
         text = text.lower()
 
-        if any(k in text for k in keywords_lower):
+        if any(keyword in text for keyword in keywords_lower):
             filtered.append(item)
 
     return filtered
@@ -100,22 +90,43 @@ def month_windows(start: datetime, end: datetime):
 
 
 def main() -> None:
+    config = load_config(CONFIG_PATH)
+
+    reddit_config = config.get("reddit", {})
+    sentence_config = config.get("sentence_preprocess", {})
+
+    subreddits = reddit_config.get("subreddits", [])
+    keywords = reddit_config.get("keywords") or sentence_config.get("ai_keywords", [])
+
+    if not subreddits:
+        raise ValueError("No subreddits found in config.yaml under reddit.subreddits")
+
+    if not keywords:
+        raise ValueError(
+            "No keywords found in config.yaml under reddit.keywords or sentence_preprocess.ai_keywords"
+        )
+
+    step_hours = int(reddit_config.get("step_hours", STEP_HOURS))
+    limit = int(reddit_config.get("limit", LIMIT))
+
     client = ArcticShiftClient(
-        sleep_seconds=1.0,
-        max_retries=4,
-        timeout=90,
+        sleep_seconds=float(config.get("api", {}).get("sleep_seconds", 1.0)),
+        max_retries=int(config.get("api", {}).get("max_retries", 4)),
+        timeout=int(config.get("api", {}).get("timeout", 90)),
     )
 
     logging.info("Starting POST-ONLY Reddit backfill")
     logging.info("Window: %s to %s", BACKFILL_START, BACKFILL_END)
+    logging.info("Subreddits loaded from config: %s", len(subreddits))
+    logging.info("Keywords loaded from config: %s", len(keywords))
 
     for window_start, window_end in month_windows(BACKFILL_START, BACKFILL_END):
         run_label = f"backfill_{window_start.strftime('%Y-%m')}"
 
         logging.info("Processing %s", run_label)
 
-        for subreddit in SUBREDDITS:
-            subreddit_clean = subreddit.lower().replace("r/", "")
+        for subreddit in subreddits:
+            subreddit_clean = str(subreddit).lower().replace("r/", "")
 
             try:
                 posts = collect_posts_by_windows(
@@ -123,12 +134,12 @@ def main() -> None:
                     subreddit=subreddit_clean,
                     start=window_start,
                     end=window_end,
-                    step_hours=STEP_HOURS,
-                    limit=LIMIT,
+                    step_hours=step_hours,
+                    limit=limit,
                     fields=POST_FIELDS,
                 )
 
-                filtered_posts = keyword_filter(posts, KEYWORDS)
+                filtered_posts = keyword_filter(posts, keywords)
 
                 output_path = RAW_DIR / run_label / f"{subreddit_clean}_posts.json"
                 save_json(filtered_posts, output_path)
