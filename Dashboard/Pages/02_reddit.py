@@ -1,30 +1,35 @@
-import sqlite3
-from pathlib import Path
-
 import pandas as pd
 import plotly.express as px
 import streamlit as st
-
-
-DB_PATH = Path("data/database/framescope.db")
+from sqlalchemy import create_engine, text
 
 
 # --------------------------------------------------
-# DATABASE HELPERS
+# DATABASE
 # --------------------------------------------------
 
-def table_exists(conn: sqlite3.Connection, table_name: str) -> bool:
-    row = conn.execute(
+@st.cache_resource
+def get_engine():
+    neon_url = st.secrets["NeonDb"]
+    return create_engine(neon_url, pool_pre_ping=True)
+
+
+def table_exists(table_name: str) -> bool:
+    engine = get_engine()
+
+    query = text(
         """
-        SELECT name
-        FROM sqlite_master
-        WHERE type = 'table'
-          AND name = ?;
-        """,
-        (table_name,),
-    ).fetchone()
+        SELECT EXISTS (
+            SELECT 1
+            FROM information_schema.tables
+            WHERE table_schema = 'public'
+              AND table_name = :table_name
+        ) AS exists;
+        """
+    )
 
-    return row is not None
+    with engine.connect() as conn:
+        return bool(conn.execute(query, {"table_name": table_name}).scalar())
 
 
 # --------------------------------------------------
@@ -32,12 +37,11 @@ def table_exists(conn: sqlite3.Connection, table_name: str) -> bool:
 # --------------------------------------------------
 
 @st.cache_data(ttl=60)
-def load_shift_summaries(db_path: Path = DB_PATH) -> pd.DataFrame:
-    conn = sqlite3.connect(db_path)
-
-    if not table_exists(conn, "volume_shift_summary"):
-        conn.close()
+def load_shift_summaries() -> pd.DataFrame:
+    if not table_exists("volume_shift_summary"):
         return pd.DataFrame()
+
+    engine = get_engine()
 
     df = pd.read_sql_query(
         """
@@ -53,10 +57,8 @@ def load_shift_summaries(db_path: Path = DB_PATH) -> pd.DataFrame:
             metaphor_shift
         FROM volume_shift_summary;
         """,
-        conn,
+        engine,
     )
-
-    conn.close()
 
     if not df.empty:
         df["period_start"] = pd.to_datetime(df["period_start"], errors="coerce")
@@ -65,19 +67,19 @@ def load_shift_summaries(db_path: Path = DB_PATH) -> pd.DataFrame:
 
 
 @st.cache_data(ttl=60)
-def load_filter_options(db_path: Path = DB_PATH) -> dict:
-    conn = sqlite3.connect(db_path)
-
-    if not table_exists(conn, "aggregate_weekly_metrics"):
-        conn.close()
+def load_filter_options() -> dict:
+    if not table_exists("aggregate_weekly_metrics"):
+        today = pd.Timestamp.today().date()
         return {
             "subreddits": [],
             "metaphors": [],
             "granularities": [],
             "stances": [],
-            "min_date": pd.Timestamp.today().date(),
-            "max_date": pd.Timestamp.today().date(),
+            "min_date": today,
+            "max_date": today,
         }
+
+    engine = get_engine()
 
     subreddits = pd.read_sql_query(
         """
@@ -87,7 +89,7 @@ def load_filter_options(db_path: Path = DB_PATH) -> dict:
           AND TRIM(subreddit) != ''
         ORDER BY subreddit;
         """,
-        conn,
+        engine,
     )["subreddit"].tolist()
 
     metaphors = pd.read_sql_query(
@@ -98,7 +100,7 @@ def load_filter_options(db_path: Path = DB_PATH) -> dict:
           AND TRIM(metaphor_category) != ''
         ORDER BY metaphor_category;
         """,
-        conn,
+        engine,
     )["metaphor_category"].tolist()
 
     granularities = pd.read_sql_query(
@@ -109,7 +111,7 @@ def load_filter_options(db_path: Path = DB_PATH) -> dict:
           AND TRIM(granularity) != ''
         ORDER BY granularity;
         """,
-        conn,
+        engine,
     )["granularity"].tolist()
 
     stances = pd.read_sql_query(
@@ -120,7 +122,7 @@ def load_filter_options(db_path: Path = DB_PATH) -> dict:
           AND TRIM(stance) != ''
         ORDER BY stance;
         """,
-        conn,
+        engine,
     )["stance"].tolist()
 
     dates = pd.read_sql_query(
@@ -130,10 +132,8 @@ def load_filter_options(db_path: Path = DB_PATH) -> dict:
             MAX(week_start) AS max_date
         FROM aggregate_weekly_metrics;
         """,
-        conn,
+        engine,
     )
-
-    conn.close()
 
     if (
         dates.empty
@@ -158,7 +158,6 @@ def load_filter_options(db_path: Path = DB_PATH) -> dict:
 
 @st.cache_data(ttl=60)
 def load_data(
-    db_path: Path,
     subreddits: list[str],
     metaphors: list[str],
     granularities: list[str],
@@ -166,7 +165,7 @@ def load_data(
     include_none: bool,
     date_range: tuple,
 ) -> pd.DataFrame:
-    conn = sqlite3.connect(db_path)
+    engine = get_engine()
 
     df = pd.read_sql_query(
         """
@@ -183,10 +182,8 @@ def load_data(
             avg_score
         FROM aggregate_weekly_metrics;
         """,
-        conn,
+        engine,
     )
-
-    conn.close()
 
     if df.empty:
         return df
@@ -331,18 +328,13 @@ def aggregate_for_chart(df: pd.DataFrame, filters: dict) -> pd.DataFrame:
     group_cols = ["week_start"] if group_by is None else ["week_start", group_by]
 
     if y_col == "avg_score":
-        chart_df = df.groupby(group_cols, as_index=False)[y_col].mean()
-    else:
-        chart_df = df.groupby(group_cols, as_index=False)[y_col].sum()
+        return df.groupby(group_cols, as_index=False)[y_col].mean()
 
-    return chart_df
+    return df.groupby(group_cols, as_index=False)[y_col].sum()
 
 
-def attach_shift_tooltips(
-    chart_df: pd.DataFrame,
-    db_path: Path = DB_PATH,
-) -> pd.DataFrame:
-    shift_df = load_shift_summaries(db_path)
+def attach_shift_tooltips(chart_df: pd.DataFrame) -> pd.DataFrame:
+    shift_df = load_shift_summaries()
 
     tooltip_cols = [
         "shift_summary",
@@ -395,15 +387,11 @@ def attach_shift_tooltips(
     return chart_df
 
 
-def build_line_chart(
-    chart_df: pd.DataFrame,
-    filters: dict,
-    db_path: Path,
-):
+def build_line_chart(chart_df: pd.DataFrame, filters: dict):
     y_col = filters["y_axis"]
     group_by = filters["group_by"]
 
-    chart_df = attach_shift_tooltips(chart_df, db_path)
+    chart_df = attach_shift_tooltips(chart_df)
 
     tooltip_cols = [
         "shift_summary",
@@ -432,16 +420,17 @@ def build_line_chart(
     )
 
     fig.update_traces(
-    line=dict(width=2.5),
-    marker=dict(size=6),
-    hovertemplate=(
-        "<b>%{fullData.name}</b><br>"
-        "Week: %{x|%Y-%m-%d}<br>"
-        f"{filters['y_axis_label']}: " + "%{y:,}<br><br>"
-        "<b>Shift Summary</b><br>%{customdata[0]}"
-        "<extra></extra>"
-    ),
-)
+        line=dict(width=2.5),
+        marker=dict(size=6),
+        hovertemplate=(
+            "<b>%{fullData.name}</b><br>"
+            "Week: %{x|%Y-%m-%d}<br>"
+            f"{filters['y_axis_label']}: " + "%{y:,}<br><br>"
+            "<b>Shift Summary</b><br>%{customdata[0]}"
+            "<extra></extra>"
+        ),
+    )
+
     return fig
 
 
@@ -509,7 +498,7 @@ def build_pie_chart(chart_df: pd.DataFrame, filters: dict):
 # DASHBOARD WINDOW
 # --------------------------------------------------
 
-def dashboard_window(df: pd.DataFrame, filters: dict, db_path: Path = DB_PATH) -> None:
+def dashboard_window(df: pd.DataFrame, filters: dict) -> None:
     with st.container(border=True):
         st.markdown("### Analysis Window")
 
@@ -524,7 +513,7 @@ def dashboard_window(df: pd.DataFrame, filters: dict, db_path: Path = DB_PATH) -
             return
 
         if filters["chart_type"] == "Line Chart":
-            fig = build_line_chart(chart_df, filters, db_path)
+            fig = build_line_chart(chart_df, filters)
         elif filters["chart_type"] == "Bar Graph":
             fig = build_bar_chart(chart_df, filters)
         else:
@@ -538,8 +527,9 @@ def dashboard_window(df: pd.DataFrame, filters: dict, db_path: Path = DB_PATH) -
             legend_title_text=filters["group_by_label"],
         )
 
-        fig.update_xaxes(showgrid=False, zeroline=False)
-        fig.update_yaxes(showgrid=True, zeroline=False)
+        if filters["chart_type"] != "Pie Chart":
+            fig.update_xaxes(showgrid=False, zeroline=False)
+            fig.update_yaxes(showgrid=True, zeroline=False)
 
         st.plotly_chart(
             fig,
@@ -584,18 +574,13 @@ def dashboard_navigation_buttons() -> None:
 # PAGE
 # --------------------------------------------------
 
-def run_dashboard_page(db_path: Path = DB_PATH) -> None:
+def run_dashboard_page() -> None:
     st.title("Reddit AI Discourse Dashboard")
 
-    if not db_path.exists():
-        st.error(f"Database not found: `{db_path}`")
-        st.stop()
-
-    options = load_filter_options(db_path)
+    options = load_filter_options()
     filters = render_filters(options)
 
     df = load_data(
-        db_path=db_path,
         subreddits=filters["subreddits"],
         metaphors=filters["metaphors"],
         granularities=filters["granularities"],
@@ -604,7 +589,7 @@ def run_dashboard_page(db_path: Path = DB_PATH) -> None:
         date_range=filters["date_range"],
     )
 
-    dashboard_window(df, filters, db_path)
+    dashboard_window(df, filters)
 
     st.divider()
 

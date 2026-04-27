@@ -1,11 +1,16 @@
-import sqlite3
-from pathlib import Path
-
 import pandas as pd
 import streamlit as st
+from sqlalchemy import create_engine
 
 
-DB_PATH = Path("data/database/framescope.db")
+# --------------------------------------------------
+# DATABASE
+# --------------------------------------------------
+
+@st.cache_resource
+def get_engine():
+    neon_url = st.secrets["NeonDb"]
+    return create_engine(neon_url, pool_pre_ping=True)
 
 
 # --------------------------------------------------
@@ -13,8 +18,8 @@ DB_PATH = Path("data/database/framescope.db")
 # --------------------------------------------------
 
 @st.cache_data(ttl=60)
-def load_report_options(db_path: Path = DB_PATH) -> dict:
-    conn = sqlite3.connect(db_path)
+def load_report_options() -> dict:
+    engine = get_engine()
 
     weekly_reports = pd.read_sql_query(
         """
@@ -22,7 +27,7 @@ def load_report_options(db_path: Path = DB_PATH) -> dict:
         FROM weekly_llm_summary
         ORDER BY week_start DESC, scope, scope_value;
         """,
-        conn,
+        engine,
     )
 
     monthly_reports = pd.read_sql_query(
@@ -31,7 +36,7 @@ def load_report_options(db_path: Path = DB_PATH) -> dict:
         FROM monthly_llm_summary
         ORDER BY month DESC, scope, scope_value;
         """,
-        conn,
+        engine,
     )
 
     yearly_reports = pd.read_sql_query(
@@ -40,10 +45,8 @@ def load_report_options(db_path: Path = DB_PATH) -> dict:
         FROM yearly_llm_summary
         ORDER BY year DESC, scope, scope_value;
         """,
-        conn,
+        engine,
     )
-
-    conn.close()
 
     weeks = weekly_reports[["week_start", "week_end"]].drop_duplicates()
     months = monthly_reports[["month"]].drop_duplicates()
@@ -78,9 +81,6 @@ def render_report_filters(options: dict) -> dict:
 
     selected_period = None
 
-    # -----------------------------
-    # WEEKLY
-    # -----------------------------
     if period_type == "Weekly":
         week_df = options["weeks"].copy()
 
@@ -139,16 +139,15 @@ def render_report_filters(options: dict) -> dict:
             ]
 
             if not selected_row.empty:
-                selected_period = selected_row.iloc[0]["week_start"].strftime("%Y-%m-%d")
+                selected_period = selected_row.iloc[0]["week_start"].strftime(
+                    "%Y-%m-%d"
+                )
 
         report_df = options["weekly_reports"].copy()
 
         if selected_period:
             report_df = report_df[report_df["week_start"] == selected_period]
 
-    # -----------------------------
-    # MONTHLY
-    # -----------------------------
     elif period_type == "Monthly":
         month_df = options["months_df"].copy()
 
@@ -168,8 +167,7 @@ def render_report_filters(options: dict) -> dict:
         month_df = month_df[month_df["year"] == selected_year]
 
         month_options = (
-            month_df.sort_values("month_num", ascending=False)["month_name"]
-            .tolist()
+            month_df.sort_values("month_num", ascending=False)["month_name"].tolist()
         )
 
         selected_month = st.sidebar.selectbox(
@@ -188,9 +186,6 @@ def render_report_filters(options: dict) -> dict:
         if selected_period:
             report_df = report_df[report_df["month"] == selected_period]
 
-    # -----------------------------
-    # YEARLY
-    # -----------------------------
     else:
         year_df = options["years_df"].copy()
         years = sorted(year_df["year"].dropna().unique(), reverse=True)
@@ -206,9 +201,6 @@ def render_report_filters(options: dict) -> dict:
         if selected_period:
             report_df = report_df[report_df["year"] == selected_period]
 
-    # -----------------------------
-    # SUMMARY FILTERS
-    # -----------------------------
     st.sidebar.markdown("---")
     st.sidebar.subheader("Summary Filters")
 
@@ -229,10 +221,7 @@ def render_report_filters(options: dict) -> dict:
 
             report_df = report_df[report_df["scope"] == selected_scope]
 
-        if (
-            selected_scope == "subreddit"
-            and "scope_value" in report_df.columns
-        ):
+        if selected_scope == "subreddit" and "scope_value" in report_df.columns:
             subreddit_options = ["All"] + sorted(
                 report_df["scope_value"].dropna().unique().tolist()
             )
@@ -244,9 +233,7 @@ def render_report_filters(options: dict) -> dict:
             )
 
             if selected_subreddit != "All":
-                report_df = report_df[
-                    report_df["scope_value"] == selected_subreddit
-                ]
+                report_df = report_df[report_df["scope_value"] == selected_subreddit]
 
         if "dominant_granularity" in report_df.columns:
             granularity_options = ["All"] + sorted(
@@ -328,9 +315,7 @@ def report_window(df: pd.DataFrame, filters: dict) -> None:
             st.warning("No report period available.")
             return
 
-        st.caption(
-            f"{filters['period_type']} report · {filters['selected_period']}"
-        )
+        st.caption(f"{filters['period_type']} report · {filters['selected_period']}")
 
         if df.empty:
             st.info("No report available for the selected filters.")
@@ -411,7 +396,7 @@ def report_navigation_buttons() -> None:
 
     with right:
         forward_clicked = st.button(
-            "Go To Repo →",
+            "Go To Resources →",
             use_container_width=True,
         )
 
@@ -426,15 +411,11 @@ def report_navigation_buttons() -> None:
 # PAGE
 # --------------------------------------------------
 
-def run_report_page(db_path: Path = DB_PATH) -> None:
+def run_report_page() -> None:
     st.title("FrameScope Reports")
     st.caption("Weekly, monthly, and yearly summaries of AI discourse.")
 
-    if not db_path.exists():
-        st.error(f"Database not found: `{db_path}`")
-        st.stop()
-
-    options = load_report_options(db_path)
+    options = load_report_options()
     filters = render_report_filters(options)
 
     if filters["selected_period"] is None:

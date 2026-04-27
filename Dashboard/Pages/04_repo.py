@@ -1,9 +1,59 @@
-from pathlib import Path
+from __future__ import annotations
 
+import pandas as pd
 import streamlit as st
+from sqlalchemy import create_engine
 
 
-DB_PATH = Path("data/database/framescope.db")
+@st.cache_resource
+def get_engine():
+    neon_url = st.secrets.get("NeonDb")
+    if not neon_url:
+        return None
+    return create_engine(neon_url, pool_pre_ping=True)
+
+
+@st.cache_data(ttl=120)
+def get_neon_status() -> str:
+    engine = get_engine()
+
+    if engine is None:
+        return "Neon database is not configured."
+
+    try:
+        df = pd.read_sql_query(
+            """
+            SELECT COUNT(*) AS n_rows
+            FROM aggregate_weekly_metrics;
+            """,
+            engine,
+        )
+        return f"Connected · {int(df.loc[0, 'n_rows']):,} aggregate rows available"
+    except Exception:
+        return "Neon database connection unavailable."
+
+
+@st.cache_data(ttl=300)
+def load_aggregate_metrics_csv() -> bytes:
+    engine = get_engine()
+
+    if engine is None:
+        return b""
+
+    try:
+        df = pd.read_sql_query(
+            """
+            SELECT *
+            FROM aggregate_weekly_metrics
+            ORDER BY week_start, subreddit, metaphor_category, granularity, stance;
+            """,
+            engine,
+        )
+
+        return df.to_csv(index=False).encode("utf-8")
+
+    except Exception:
+        return b""
 
 
 def contact_card(name: str, role: str, email: str) -> None:
@@ -82,7 +132,7 @@ def run_repo_page() -> None:
 
     st.markdown("### Project Resources")
 
-    col1, col2 = st.columns(2)
+    col1, col2, col3 = st.columns(3)
 
     with col1:
         resource_button(
@@ -95,6 +145,39 @@ def run_repo_page() -> None:
             "CATS Group Lab",
             "https://cats-group.github.io/",
         )
+
+    with col3:
+        csv_data = load_aggregate_metrics_csv()
+
+        if csv_data != b"":
+            button_html = """
+            <div style="
+                padding: 1rem 1.2rem;
+                border-radius: 12px;
+                background: #EEF2FF;
+                color: #1D4ED8;
+                font-weight: 600;
+                text-align: center;
+                border: 1px solid #C7D2FE;
+                margin-bottom: 0.75rem;
+            ">
+                Download Aggregate Metrics
+            </div>
+            """
+
+            st.markdown(button_html, unsafe_allow_html=True)
+
+            st.download_button(
+                label="Download",
+                data=csv_data,
+                file_name="framescope_aggregate_weekly_metrics.csv",
+                mime="text/csv",
+                use_container_width=True,
+            )
+
+    with st.container(border=True):
+        st.markdown("### Database Status")
+        st.write(get_neon_status())
 
     st.markdown("---")
 

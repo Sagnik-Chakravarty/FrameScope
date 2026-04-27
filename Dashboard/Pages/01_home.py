@@ -1,17 +1,23 @@
-import sqlite3
-from pathlib import Path
 import html
+
 import pandas as pd
+import plotly.express as px
 import streamlit as st
 import streamlit.components.v1 as components
-import plotly.express as px
+from sqlalchemy import create_engine
 
 
-DB_PATH = Path("data/database/framescope.db")
 PANEL_CONTENT_HEIGHT = 300
 PANEL_FRAME_EXTRA_HEIGHT = 120
 PANEL_OUTER_HEIGHT = PANEL_CONTENT_HEIGHT + PANEL_FRAME_EXTRA_HEIGHT
 PANEL_COMPONENT_HEIGHT = PANEL_CONTENT_HEIGHT + 20
+
+
+@st.cache_resource
+def get_engine():
+    neon_url = st.secrets["NeonDb"]
+    return create_engine(neon_url, pool_pre_ping=True)
+
 
 METAPHOR_DEFINITIONS = {
     "Tool": "AI is described as something people use to complete a task.",
@@ -42,9 +48,16 @@ STANCE_DEFINITIONS = {
 # --------------------------------------------------
 # HELPERS
 # --------------------------------------------------
+
+def pct_delta(current: float, previous: float) -> str:
+    if previous == 0:
+        return "0"
+    return f"{(current - previous) / previous:+.2%}"
+
+
 @st.cache_data(ttl=60)
-def get_latest_week_overall_summary(db_path: Path = DB_PATH) -> str:
-    conn = sqlite3.connect(db_path)
+def get_latest_week_overall_summary() -> str:
+    engine = get_engine()
 
     query = """
     SELECT summary_text
@@ -54,17 +67,17 @@ def get_latest_week_overall_summary(db_path: Path = DB_PATH) -> str:
     LIMIT 1;
     """
 
-    df = pd.read_sql_query(query, conn)
-    conn.close()
+    df = pd.read_sql_query(query, engine)
 
     if df.empty or pd.isna(df.loc[0, "summary_text"]):
         return "No weekly summary available yet."
 
     return str(df.loc[0, "summary_text"])
 
+
 @st.cache_data(ttl=60)
-def get_available_subreddits(db_path: Path = DB_PATH) -> list[str]:
-    conn = sqlite3.connect(db_path)
+def get_available_subreddits() -> list[str]:
+    engine = get_engine()
 
     query = """
     SELECT DISTINCT subreddit
@@ -74,14 +87,13 @@ def get_available_subreddits(db_path: Path = DB_PATH) -> list[str]:
     ORDER BY subreddit;
     """
 
-    df = pd.read_sql_query(query, conn)
-    conn.close()
-
+    df = pd.read_sql_query(query, engine)
     return df["subreddit"].tolist()
 
+
 @st.cache_data(ttl=60)
-def get_metaphor_examples(db_path: Path = DB_PATH) -> dict:
-    conn = sqlite3.connect(db_path)
+def get_metaphor_examples() -> dict:
+    engine = get_engine()
 
     query = """
     WITH ranked AS (
@@ -106,16 +118,8 @@ def get_metaphor_examples(db_path: Path = DB_PATH) -> dict:
     WHERE rn = 1;
     """
 
-    df = pd.read_sql_query(query, conn)
-    conn.close()
-
+    df = pd.read_sql_query(query, engine)
     return dict(zip(df["metaphor_category"], df["ai_sentence"]))
-
-    return dict(zip(df["metaphor_category"], df["ai_sentence"]))
-def pct_delta(current: float, previous: float) -> str:
-    if previous == 0:
-        return "0"
-    return f"{(current - previous) / previous:+.2%}"
 
 
 def animated_metric_card(
@@ -142,7 +146,7 @@ def animated_metric_card(
     rows_json = temp[["label", "current_n", "delta"]].to_json(orient="records")
     interval_ms = seconds_per_item * 1000
 
-    html = f"""
+    html_block = f"""
     <div class="metric-card">
         <div id="{safe_key}_title" class="metric-title">{title}</div>
         <div id="{safe_key}_value" class="metric-value">0</div>
@@ -267,64 +271,66 @@ def animated_metric_card(
     </script>
     """
 
-    components.html(html, height=150)
+    components.html(html_block, height=150)
+
 
 # --------------------------------------------------
 # DATA QUERIES
 # --------------------------------------------------
 
 @st.cache_data(ttl=60)
-def get_home_metrics(db_path: Path = DB_PATH) -> dict:
-    conn = sqlite3.connect(db_path)
+def get_home_metrics() -> dict:
+    engine = get_engine()
 
     query = """
-    WITH latest AS (
-        SELECT MAX(created_utc) AS latest_ts
-        FROM reddit_sentence_items
-        WHERE created_utc IS NOT NULL
+    WITH latest_week AS (
+        SELECT MAX(week_start) AS latest_week_start
+        FROM aggregate_weekly_metrics
     ),
 
-    windows AS (
-        SELECT
-            latest_ts,
-            latest_ts - (7 * 24 * 60 * 60) AS last_7_start,
-            latest_ts - (14 * 24 * 60 * 60) AS prev_7_start
-        FROM latest
+    previous_week AS (
+        SELECT MAX(week_start) AS previous_week_start
+        FROM aggregate_weekly_metrics
+        WHERE week_start < (SELECT latest_week_start FROM latest_week)
     )
 
     SELECT
-        COUNT(DISTINCT post_id) AS total_posts,
+        COALESCE(SUM(n_items), 0) AS total_posts,
 
-        COUNT(DISTINCT CASE
-            WHEN created_utc <= (SELECT last_7_start FROM windows)
-            THEN post_id
-        END) AS total_excl_last_7_days,
+        COALESCE(SUM(CASE
+            WHEN week_start < (SELECT latest_week_start FROM latest_week)
+            THEN n_items ELSE 0
+        END), 0) AS total_excl_last_7_days,
 
-        COUNT(DISTINCT CASE
-            WHEN created_utc > (SELECT last_7_start FROM windows)
-             AND created_utc <= (SELECT latest_ts FROM windows)
-            THEN post_id
-        END) AS last_7_days_posts,
+        COALESCE(SUM(CASE
+            WHEN week_start = (SELECT latest_week_start FROM latest_week)
+            THEN n_items ELSE 0
+        END), 0) AS last_7_days_posts,
 
-        COUNT(DISTINCT CASE
-            WHEN created_utc > (SELECT prev_7_start FROM windows)
-             AND created_utc <= (SELECT last_7_start FROM windows)
-            THEN post_id
-        END) AS prev_7_days_posts
+        COALESCE(SUM(CASE
+            WHEN week_start = (SELECT previous_week_start FROM previous_week)
+            THEN n_items ELSE 0
+        END), 0) AS prev_7_days_posts
 
-    FROM reddit_sentence_items
-    WHERE post_id IS NOT NULL;
+    FROM aggregate_weekly_metrics;
     """
 
-    df = pd.read_sql_query(query, conn)
-    conn.close()
+    df = pd.read_sql_query(query, engine)
+
+    if df.empty:
+        return {
+            "total_posts": 0,
+            "total_excl_last_7_days": 0,
+            "last_7_days_posts": 0,
+            "prev_7_days_posts": 0,
+        }
 
     return df.iloc[0].fillna(0).to_dict()
 
 
 @st.cache_data(ttl=60)
-def get_metaphor_cycle_metrics(db_path: Path = DB_PATH) -> pd.DataFrame:
-    conn = sqlite3.connect(db_path)
+def get_metaphor_cycle_metrics() -> pd.DataFrame:
+    engine = get_engine()
 
     query = """
     WITH latest_week AS (
@@ -341,15 +347,15 @@ def get_metaphor_cycle_metrics(db_path: Path = DB_PATH) -> pd.DataFrame:
     SELECT
         metaphor_category AS label,
 
-        SUM(CASE
+        COALESCE(SUM(CASE
             WHEN week_start = (SELECT latest_week_start FROM latest_week)
             THEN n_items ELSE 0
-        END) AS current_n,
+        END), 0) AS current_n,
 
-        SUM(CASE
+        COALESCE(SUM(CASE
             WHEN week_start = (SELECT previous_week_start FROM previous_week)
             THEN n_items ELSE 0
-        END) AS previous_n
+        END), 0) AS previous_n
 
     FROM aggregate_weekly_metrics
     WHERE metaphor_category IS NOT NULL
@@ -357,15 +363,13 @@ def get_metaphor_cycle_metrics(db_path: Path = DB_PATH) -> pd.DataFrame:
     ORDER BY current_n DESC;
     """
 
-    df = pd.read_sql_query(query, conn)
-    conn.close()
-
+    df = pd.read_sql_query(query, engine)
     return df.fillna(0)
 
 
 @st.cache_data(ttl=60)
-def get_granularity_cycle_metrics(db_path: Path = DB_PATH) -> pd.DataFrame:
-    conn = sqlite3.connect(db_path)
+def get_granularity_cycle_metrics() -> pd.DataFrame:
+    engine = get_engine()
 
     query = """
     WITH latest_week AS (
@@ -382,15 +386,15 @@ def get_granularity_cycle_metrics(db_path: Path = DB_PATH) -> pd.DataFrame:
     SELECT
         granularity AS label,
 
-        SUM(CASE
+        COALESCE(SUM(CASE
             WHEN week_start = (SELECT latest_week_start FROM latest_week)
             THEN n_items ELSE 0
-        END) AS current_n,
+        END), 0) AS current_n,
 
-        SUM(CASE
+        COALESCE(SUM(CASE
             WHEN week_start = (SELECT previous_week_start FROM previous_week)
             THEN n_items ELSE 0
-        END) AS previous_n
+        END), 0) AS previous_n
 
     FROM aggregate_weekly_metrics
     WHERE granularity IS NOT NULL
@@ -398,10 +402,41 @@ def get_granularity_cycle_metrics(db_path: Path = DB_PATH) -> pd.DataFrame:
     ORDER BY current_n DESC;
     """
 
-    df = pd.read_sql_query(query, conn)
-    conn.close()
-
+    df = pd.read_sql_query(query, engine)
     return df.fillna(0)
+
+
+@st.cache_data(ttl=60)
+def get_metaphor_time_series() -> pd.DataFrame:
+    engine = get_engine()
+
+    query = """
+    SELECT
+        week_start,
+        metaphor_category,
+        COALESCE(SUM(n_items), 0) AS n_posts
+    FROM aggregate_weekly_metrics
+    WHERE metaphor_category IS NOT NULL
+      AND TRIM(metaphor_category) != ''
+    GROUP BY
+        week_start,
+        metaphor_category
+    ORDER BY
+        week_start,
+        metaphor_category;
+    """
+
+    df = pd.read_sql_query(query, engine)
+
+    if not df.empty:
+        df["week_start"] = pd.to_datetime(df["week_start"])
+
+    return df
+
+
+# --------------------------------------------------
+# COMPONENTS
+# --------------------------------------------------
 
 def page_button() -> None:
     left, middle, right = st.columns([1, 1.4, 1])
@@ -416,7 +451,7 @@ def page_button() -> None:
         st.switch_page("Pages/02_reddit.py")
 
 
-def methodology_box(db_path: Path = DB_PATH) -> None:
+def methodology_box() -> None:
     pane_order = ["subreddits", "annotations", "metaphors"]
     pane_titles = {
         "subreddits": "Available Subreddits",
@@ -473,7 +508,7 @@ def methodology_box(db_path: Path = DB_PATH) -> None:
         st.caption(f"Section: {pane_titles[pane]}")
 
         if pane == "subreddits":
-            subreddits = get_available_subreddits(db_path)
+            subreddits = get_available_subreddits()
 
             body = "<h4>Available Subreddits</h4><ul>"
             for sub in subreddits:
@@ -496,7 +531,7 @@ def methodology_box(db_path: Path = DB_PATH) -> None:
             body += "</ul>"
 
         else:
-            examples = get_metaphor_examples(db_path)
+            examples = get_metaphor_examples()
 
             body = "<h4>Metaphor Labels</h4><ul>"
             for label, definition in METAPHOR_DEFINITIONS.items():
@@ -534,38 +569,14 @@ def methodology_box(db_path: Path = DB_PATH) -> None:
             """,
             height=PANEL_COMPONENT_HEIGHT,
         )
-@st.cache_data(ttl=60)
-def get_metaphor_time_series(db_path: Path = DB_PATH) -> pd.DataFrame:
-    conn = sqlite3.connect(db_path)
 
-    query = """
-    SELECT
-        week_start,
-        metaphor_category,
-        SUM(n_items) AS n_posts
-    FROM aggregate_weekly_metrics
-    WHERE metaphor_category IS NOT NULL
-      AND TRIM(metaphor_category) != ''
-    GROUP BY
-        week_start,
-        metaphor_category
-    ORDER BY
-        week_start,
-        metaphor_category;
-    """
 
-    df = pd.read_sql_query(query, conn)
-    conn.close()
-
-    df["week_start"] = pd.to_datetime(df["week_start"])
-
-    return df
-def charts_placeholder_box(db_path: Path = DB_PATH) -> None:
+def charts_placeholder_box() -> None:
     with st.container(border=True, height=PANEL_OUTER_HEIGHT):
         st.markdown("#### Metaphor Usage Over Time")
         st.caption("Weekly post volume by metaphor.")
 
-        df = get_metaphor_time_series(db_path)
+        df = get_metaphor_time_series()
 
         if df.empty:
             st.info("No aggregate metaphor data available yet.")
@@ -612,15 +623,8 @@ def charts_placeholder_box(db_path: Path = DB_PATH) -> None:
             paper_bgcolor="white",
         )
 
-        fig.update_xaxes(
-            showgrid=False,
-            zeroline=False,
-        )
-
-        fig.update_yaxes(
-            showgrid=True,
-            zeroline=False,
-        )
+        fig.update_xaxes(showgrid=False, zeroline=False)
+        fig.update_yaxes(showgrid=True, zeroline=False)
 
         st.plotly_chart(
             fig,
@@ -631,16 +635,13 @@ def charts_placeholder_box(db_path: Path = DB_PATH) -> None:
             },
         )
 
+
 # --------------------------------------------------
 # PAGE
 # --------------------------------------------------
 
-def run_home_page(db_path: Path = DB_PATH) -> None:
-    if not db_path.exists():
-        st.error(f"Database not found: `{db_path}`")
-        st.stop()
-
-    metrics = get_home_metrics(db_path)
+def run_home_page() -> None:
+    metrics = get_home_metrics()
 
     total_posts = int(metrics["total_posts"])
     total_excl_last_7_days = int(metrics["total_excl_last_7_days"])
@@ -650,41 +651,45 @@ def run_home_page(db_path: Path = DB_PATH) -> None:
     delta_total = pct_delta(total_posts, total_excl_last_7_days)
     delta_week = pct_delta(last_7_days_posts, prev_7_days_posts)
 
-    metaphor_df = get_metaphor_cycle_metrics(db_path)
-    granularity_df = get_granularity_cycle_metrics(db_path)
+    metaphor_df = get_metaphor_cycle_metrics()
+    granularity_df = get_granularity_cycle_metrics()
 
     left_col, right_col = st.columns([1.45, 1.55])
 
     with left_col:
         st.title("FrameScope Home")
         st.subheader("Welcome to the FrameScope Dashboard")
-        latest_summary = get_latest_week_overall_summary(db_path)
 
+        latest_summary = get_latest_week_overall_summary()
+
+        st.markdown("#### This Week's Summary")
         st.markdown(
-        f"""
-        <div style="
-            border-left: 4px solid #2563EB;
-            padding-left: 1rem;
-            margin-top: 0.5rem;
-            color: #374151;
-            font-style: italic;
-            text-align: justify;
-            line-height: 1.55;
-        ">
-            {html.escape(latest_summary)}
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
+            f"""
+            <div style="
+                border-left: 4px solid #2563EB;
+                padding-left: 1rem;
+                margin-top: 0.5rem;
+                color: #374151;
+                font-style: italic;
+                text-align: justify;
+                line-height: 1.55;
+            ">
+                {html.escape(latest_summary)}
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
 
     with right_col:
         top_row_left, top_row_right = st.columns(2)
+
         with top_row_left:
             st.metric(
                 label="Total Posts",
                 value=f"{total_posts:,}",
                 delta=delta_total,
             )
+
         with top_row_right:
             st.metric(
                 label="This Week",
@@ -693,6 +698,7 @@ def run_home_page(db_path: Path = DB_PATH) -> None:
             )
 
         bottom_row_left, bottom_row_right = st.columns(2)
+
         with bottom_row_left:
             animated_metric_card(
                 title="Metaphor",
@@ -700,6 +706,7 @@ def run_home_page(db_path: Path = DB_PATH) -> None:
                 key="metaphor_metric",
                 seconds_per_item=7,
             )
+
         with bottom_row_right:
             animated_metric_card(
                 title="Granularity",
@@ -708,11 +715,13 @@ def run_home_page(db_path: Path = DB_PATH) -> None:
                 seconds_per_item=7,
             )
 
-
     st.divider()
+
     method_col, charts_col = st.columns([1, 1])
+
     with method_col:
         methodology_box()
+
     with charts_col:
         charts_placeholder_box()
 
