@@ -13,7 +13,9 @@ This module wraps Arctic Shift API endpoints and adds:
 from __future__ import annotations
 
 import logging
+import os
 import time
+from concurrent.futures import ProcessPoolExecutor, as_completed
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, Iterable, List, Optional, Union
 
@@ -712,5 +714,169 @@ def collect_comments_by_windows(
 
         comments = normalize_response(data)
         all_comments.extend(comments)
+
+    return deduplicate_items(all_comments)
+
+
+def collect_posts_by_subreddits_parallel(
+    client: ArcticShiftClient,
+    subreddits: Union[str, List[str]],
+    start: datetime,
+    end: datetime,
+    step_hours: int = 24,
+    limit: int = 100,
+    max_workers: Optional[int] = None,
+    fields: Optional[Union[str, List[str]]] = None,
+    **kwargs: Any,
+) -> List[Dict[str, Any]]:
+    """
+    Collect posts from multiple subreddits in parallel using ProcessPoolExecutor.
+
+    This function distributes subreddit scraping across multiple worker processes
+    for significantly faster data collection when targeting many subreddits.
+
+    Args:
+        client: ArcticShiftClient instance
+        subreddits: Single subreddit name or list of subreddit names
+        start: Start datetime for the collection window
+        end: End datetime for the collection window
+        step_hours: Hours per API request window (default: 24)
+        limit: Posts per API request (default: 100)
+        max_workers: Number of parallel worker processes (default: CPU count)
+        fields: Fields to retrieve from the API
+        **kwargs: Additional arguments passed to client.search_posts
+
+    Returns:
+        List of all posts from all subreddits, deduplicated by ID
+    """
+    if isinstance(subreddits, str):
+        subreddits = [subreddits]
+
+    if not subreddits:
+        return []
+
+    if max_workers is None:
+        max_workers = min(len(subreddits), os.cpu_count() or 1)
+    else:
+        max_workers = max(1, min(max_workers, len(subreddits)))
+
+    logger.info(
+        "Collecting posts from %d subreddits in parallel (%d workers)",
+        len(subreddits),
+        max_workers,
+    )
+
+    def _worker(subreddit: str) -> tuple[str, List[Dict[str, Any]]]:
+        """Worker process: collect posts for a single subreddit."""
+        posts = collect_posts_by_windows(
+            client=client,
+            subreddit=subreddit,
+            start=start,
+            end=end,
+            step_hours=step_hours,
+            limit=limit,
+            fields=fields,
+            **kwargs,
+        )
+        return subreddit, posts
+
+    all_posts: List[Dict[str, Any]] = []
+
+    with ProcessPoolExecutor(max_workers=max_workers) as executor:
+        futures = {
+            executor.submit(_worker, subreddit): subreddit
+            for subreddit in subreddits
+        }
+
+        for future in as_completed(futures):
+            subreddit = futures[future]
+            try:
+                _, posts = future.result()
+                all_posts.extend(posts)
+                logger.info("Completed r/%s | posts=%d", subreddit, len(posts))
+            except Exception as exc:
+                logger.exception("Failed to collect posts from r/%s", subreddit)
+
+    return deduplicate_items(all_posts)
+
+
+def collect_comments_by_subreddits_parallel(
+    client: ArcticShiftClient,
+    subreddits: Union[str, List[str]],
+    start: datetime,
+    end: datetime,
+    step_hours: int = 24,
+    limit: int = 100,
+    max_workers: Optional[int] = None,
+    fields: Optional[Union[str, List[str]]] = None,
+    **kwargs: Any,
+) -> List[Dict[str, Any]]:
+    """
+    Collect comments from multiple subreddits in parallel using ProcessPoolExecutor.
+
+    This function distributes subreddit scraping across multiple worker processes
+    for significantly faster data collection when targeting many subreddits.
+
+    Args:
+        client: ArcticShiftClient instance
+        subreddits: Single subreddit name or list of subreddit names
+        start: Start datetime for the collection window
+        end: End datetime for the collection window
+        step_hours: Hours per API request window (default: 24)
+        limit: Comments per API request (default: 100)
+        max_workers: Number of parallel worker processes (default: CPU count)
+        fields: Fields to retrieve from the API
+        **kwargs: Additional arguments passed to client.search_comments
+
+    Returns:
+        List of all comments from all subreddits, deduplicated by ID
+    """
+    if isinstance(subreddits, str):
+        subreddits = [subreddits]
+
+    if not subreddits:
+        return []
+
+    if max_workers is None:
+        max_workers = min(len(subreddits), os.cpu_count() or 1)
+    else:
+        max_workers = max(1, min(max_workers, len(subreddits)))
+
+    logger.info(
+        "Collecting comments from %d subreddits in parallel (%d workers)",
+        len(subreddits),
+        max_workers,
+    )
+
+    def _worker(subreddit: str) -> tuple[str, List[Dict[str, Any]]]:
+        """Worker process: collect comments for a single subreddit."""
+        comments = collect_comments_by_windows(
+            client=client,
+            subreddit=subreddit,
+            start=start,
+            end=end,
+            step_hours=step_hours,
+            limit=limit,
+            fields=fields,
+            **kwargs,
+        )
+        return subreddit, comments
+
+    all_comments: List[Dict[str, Any]] = []
+
+    with ProcessPoolExecutor(max_workers=max_workers) as executor:
+        futures = {
+            executor.submit(_worker, subreddit): subreddit
+            for subreddit in subreddits
+        }
+
+        for future in as_completed(futures):
+            subreddit = futures[future]
+            try:
+                _, comments = future.result()
+                all_comments.extend(comments)
+                logger.info("Completed r/%s | comments=%d", subreddit, len(comments))
+            except Exception as exc:
+                logger.exception("Failed to collect comments from r/%s", subreddit)
 
     return deduplicate_items(all_comments)

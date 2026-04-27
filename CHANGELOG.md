@@ -5,6 +5,20 @@ All notable changes to FrameScope will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] - 2026-04-27
+
+### Added
+- Parallel subreddit collection functions in Arctic Shift API client:
+  - `collect_posts_by_subreddits_parallel()` - Scrape posts from multiple subreddits concurrently
+  - `collect_comments_by_subreddits_parallel()` - Scrape comments from multiple subreddits concurrently
+- ProcessPoolExecutor-based concurrency with configurable worker count
+- Both functions maintain Arctic Shift API's timeout handling and retry logic
+- Auto-deduplication of results across parallel workers
+
+### Changed
+- Updated `arcshiftwrap/__init__.py` to export parallel collection functions
+- Refactored backfill script to use new parallel functions for faster data collection
+
 ## [0.3.0] - 2026-04-25
 
 ### Changed

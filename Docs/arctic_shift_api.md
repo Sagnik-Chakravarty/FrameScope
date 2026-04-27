@@ -10,7 +10,11 @@ This page gives practical examples for every public function in `arcshiftwrap/ar
 ```python
 from datetime import datetime, timezone
 
-from arcshiftwrap import ArcticShiftClient
+from arcshiftwrap import (
+	ArcticShiftClient,
+	collect_posts_by_subreddits_parallel,
+	collect_comments_by_subreddits_parallel,
+)
 from arcshiftwrap.arctic_shift import (
 	collect_comments_by_windows,
 	collect_posts_by_windows,
@@ -313,6 +317,54 @@ comments = collect_comments_by_windows(
 	step_hours=24,
 	limit=100,
 	fields=["id", "body", "created_utc"],
+)
+```
+
+### `collect_posts_by_subreddits_parallel`
+
+Collect posts from multiple subreddits concurrently using ProcessPoolExecutor. Significantly faster than sequential collection.
+
+```python
+from arcshiftwrap import collect_posts_by_subreddits_parallel
+
+start = datetime(2026, 4, 1, tzinfo=timezone.utc)
+end = datetime(2026, 4, 8, tzinfo=timezone.utc)
+
+subreddits = ["technology", "MachineLearning", "chatgpt", "OpenAI"]
+
+posts = collect_posts_by_subreddits_parallel(
+	client=client,
+	subreddits=subreddits,
+	start=start,
+	end=end,
+	step_hours=24,
+	limit=100,
+	max_workers=4,  # number of parallel processes
+	fields=["id", "title", "subreddit", "created_utc"],
+)
+```
+
+### `collect_comments_by_subreddits_parallel`
+
+Collect comments from multiple subreddits concurrently using ProcessPoolExecutor. Significantly faster than sequential collection.
+
+```python
+from arcshiftwrap import collect_comments_by_subreddits_parallel
+
+start = datetime(2026, 4, 1, tzinfo=timezone.utc)
+end = datetime(2026, 4, 8, tzinfo=timezone.utc)
+
+subreddits = ["technology", "MachineLearning", "chatgpt", "OpenAI"]
+
+comments = collect_comments_by_subreddits_parallel(
+	client=client,
+	subreddits=subreddits,
+	start=start,
+	end=end,
+	step_hours=24,
+	limit=100,
+	max_workers=4,  # number of parallel processes
+	fields=["id", "body", "subreddit", "created_utc"],
 )
 ```
 
