@@ -25,6 +25,7 @@ logs/
 
 # Data (IMPORTANT)
 data/
+archive/
 raw/
 processed/
 *.csv

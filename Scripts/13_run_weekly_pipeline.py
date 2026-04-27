@@ -2,10 +2,11 @@ from __future__ import annotations
 
 import argparse
 import logging
+import os
 import subprocess
 import sys
-from pathlib import Path
 from datetime import datetime, timezone
+from pathlib import Path
 
 
 logging.basicConfig(
@@ -35,7 +36,7 @@ PIPELINE_STEPS = [
 def run_step(step_name: str, command: list[str]) -> None:
     full_command = [PYTHON, *command]
 
-    env = dict(**__import__("os").environ)
+    env = dict(os.environ)
     existing_pythonpath = env.get("PYTHONPATH", "")
     env["PYTHONPATH"] = (
         str(PROJECT_ROOT)
@@ -61,7 +62,11 @@ def run_step(step_name: str, command: list[str]) -> None:
     logging.info("Completed step: %s", step_name)
 
 
-def run_pipeline(skip_archive: bool, archive_dry_run: bool) -> None:
+def run_pipeline(
+    skip_archive: bool,
+    archive_dry_run: bool,
+    skip_neon_upload: bool,
+) -> None:
     started_at = datetime.now(timezone.utc)
 
     logging.info("FrameScope weekly pipeline started at %s", started_at.isoformat())
@@ -78,6 +83,18 @@ def run_pipeline(skip_archive: bool, archive_dry_run: bool) -> None:
             archive_command.append("--dry-run")
 
         run_step("archive_and_prune", archive_command)
+
+    if skip_neon_upload:
+        logging.info("Skipping Neon upload because --skip-neon-upload was used.")
+    elif archive_dry_run:
+        logging.info("Skipping Neon upload because archive was run in dry-run mode.")
+    elif skip_archive:
+        logging.info("Skipping Neon upload because archive step was skipped.")
+    else:
+        run_step(
+            "upload_aggregate_to_neon",
+            ["Scripts/12_upload_aggregate_to_neon.py"],
+        )
 
     finished_at = datetime.now(timezone.utc)
     logging.info("FrameScope weekly pipeline finished at %s", finished_at.isoformat())
@@ -100,6 +117,12 @@ def parse_args() -> argparse.Namespace:
         help="Run archive step in dry-run mode.",
     )
 
+    parser.add_argument(
+        "--skip-neon-upload",
+        action="store_true",
+        help="Run the full pipeline but skip uploading aggregate tables to Neon.",
+    )
+
     return parser.parse_args()
 
 
@@ -110,6 +133,7 @@ def main() -> None:
         run_pipeline(
             skip_archive=args.skip_archive,
             archive_dry_run=args.archive_dry_run,
+            skip_neon_upload=args.skip_neon_upload,
         )
     except Exception as exc:
         logging.exception("Weekly pipeline failed: %s", exc)

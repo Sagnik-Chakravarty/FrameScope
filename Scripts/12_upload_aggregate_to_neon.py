@@ -5,10 +5,8 @@ import logging
 import os
 import sqlite3
 from pathlib import Path
-from typing import Any
 
 import pandas as pd
-import psycopg2
 from dotenv import load_dotenv
 from sqlalchemy import create_engine, text
 
@@ -75,6 +73,7 @@ def get_existing_tables(sqlite_db: Path) -> list[str]:
 
     try:
         existing = []
+
         for table in DASHBOARD_TABLES:
             if sqlite_table_exists(conn, table):
                 existing.append(table)
@@ -91,19 +90,13 @@ def read_sqlite_table(sqlite_db: Path, table: str) -> pd.DataFrame:
     conn = sqlite3.connect(sqlite_db)
 
     try:
-        df = pd.read_sql_query(f'SELECT * FROM "{table}";', conn)
-        return df
+        return pd.read_sql_query(f'SELECT * FROM "{table}";', conn)
 
     finally:
         conn.close()
 
 
 def normalize_dataframe(df: pd.DataFrame) -> pd.DataFrame:
-    """
-    Keep uploads simple and robust:
-    - Convert fully empty strings to None where useful.
-    - Let pandas/sqlalchemy infer most types.
-    """
     if df.empty:
         return df
 
@@ -116,16 +109,44 @@ def normalize_dataframe(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def upload_table(
+def postgres_table_exists(engine, table: str) -> bool:
+    query = text(
+        """
+        SELECT EXISTS (
+            SELECT 1
+            FROM information_schema.tables
+            WHERE table_schema = 'public'
+              AND table_name = :table_name
+        ) AS exists;
+        """
+    )
+
+    with engine.begin() as conn:
+        return bool(conn.execute(query, {"table_name": table}).scalar())
+
+
+def clear_postgres_table(engine, table: str) -> None:
+    with engine.begin() as conn:
+        conn.execute(text(f'DELETE FROM "{table}";'))
+
+
+def upload_table_sync(
     engine,
     table: str,
     df: pd.DataFrame,
-    if_exists: str,
     chunksize: int,
 ) -> int:
     df = normalize_dataframe(df)
 
-    logging.info("Uploading table=%s | rows=%s | mode=%s", table, len(df), if_exists)
+    logging.info("Syncing table=%s | rows=%s", table, len(df))
+
+    if postgres_table_exists(engine, table):
+        logging.info("Clearing existing rows from Neon table: %s", table)
+        clear_postgres_table(engine, table)
+        if_exists = "append"
+    else:
+        logging.info("Creating Neon table because it does not exist: %s", table)
+        if_exists = "fail"
 
     df.to_sql(
         name=table,
@@ -140,10 +161,6 @@ def upload_table(
 
 
 def create_indexes(engine) -> None:
-    """
-    PostgreSQL indexes for dashboard queries.
-    Safe to run every week.
-    """
     index_statements = [
         """
         CREATE INDEX IF NOT EXISTS idx_neon_aggregate_weekly_period
@@ -240,7 +257,6 @@ def log_upload_metadata(engine, uploaded_rows: dict[str, int]) -> None:
 def upload_to_neon(
     sqlite_db: Path,
     neon_url: str,
-    if_exists: str,
     chunksize: int,
 ) -> None:
     check_sqlite_db(sqlite_db)
@@ -255,18 +271,13 @@ def upload_to_neon(
     uploaded_rows: dict[str, int] = {}
 
     try:
-        for i, table in enumerate(tables):
+        for table in tables:
             df = read_sqlite_table(sqlite_db, table)
 
-            mode = if_exists
-
-            # If replacing, replace every table independently.
-            # This keeps Neon exactly synced to the aggregate SQLite DB.
-            row_count = upload_table(
+            row_count = upload_table_sync(
                 engine=engine,
                 table=table,
                 df=df,
-                if_exists=mode,
                 chunksize=chunksize,
             )
 
@@ -286,7 +297,7 @@ def upload_to_neon(
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Upload FrameScope aggregate SQLite database to Neon Postgres."
+        description="Sync FrameScope aggregate SQLite database to Neon Postgres."
     )
 
     parser.add_argument(
@@ -294,13 +305,6 @@ def parse_args() -> argparse.Namespace:
         type=str,
         default=str(SQLITE_DB),
         help="Path to aggregate SQLite DB.",
-    )
-
-    parser.add_argument(
-        "--if-exists",
-        choices=["replace", "append"],
-        default="replace",
-        help="Upload mode. Use replace for weekly full refresh.",
     )
 
     parser.add_argument(
@@ -321,11 +325,10 @@ def main() -> None:
     upload_to_neon(
         sqlite_db=Path(args.sqlite_db),
         neon_url=neon_url,
-        if_exists=args.if_exists,
         chunksize=args.chunksize,
     )
 
-    print("\nDone. Aggregate database uploaded to Neon.\n")
+    print("\nDone. Aggregate database synced to Neon.\n")
 
 
 if __name__ == "__main__":
