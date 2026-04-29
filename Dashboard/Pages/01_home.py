@@ -24,15 +24,24 @@ def get_engine():
 
 
 METAPHOR_DEFINITIONS = {
-    "Tool": "AI is described as something people use to complete a task.",
-    "Assistant": "AI is described as a helper that supports the user.",
-    "Genie": "AI is described as magical, wish-granting, or unusually powerful.",
-    "Mirror": "AI is described as reflecting human behavior, knowledge, or bias.",
-    "Child": "AI is described as something that learns, develops, or needs guidance.",
-    "Friend": "AI is described as a companion or social partner.",
-    "Animal": "AI is described as something trainable, instinctive, or dangerous.",
-    "God": "AI is described as all-knowing, extremely powerful, or beyond human ability.",
-    "None": "No clear metaphor is being used.",
+    "Tool": "AI is described as a functional instrument, utility, or productivity aid that performs tasks based on user input.",
+    "Weapon": "AI is framed through conflict, war, attack, defense, manipulation, or harm.",
+    "Mirror": "AI is described as reflecting human knowledge, behavior, society, data, or bias.",
+    "Garbage": "AI output is framed as junk, slop, trash, spam, low-quality content, or pollution of information spaces.",
+    "Black Box": "AI is described as opaque, unknowable, mysterious, hidden, or difficult to interpret.",
+    "Mind": "AI is described as thinking, understanding, reasoning, knowing, feeling, or having human-like cognition.",
+    "Friend": "AI is described as a companion, confidant, social partner, or emotionally supportive presence.",
+    "Child": "AI is described as young, immature, developing, learning, needing training, or growing over time.",
+    "Criminal": "AI is framed as stealing, cheating, copying, scamming, violating rights, or committing wrongdoing.",
+    "Artist": "AI is described as a creative producer, maker, writer, painter, musician, designer, or creator.",
+    "Assistant": "AI is described as a helper, aide, copilot, secretary, tutor, support system, or assistant.",
+    "Animal": "AI is described as wild, trained, unleashed, beast-like, instinctive, predatory, or difficult to control.",
+    "Disaster": "AI is framed as an overwhelming destructive force, flood, tsunami, avalanche, earthquake, storm, or catastrophe.",
+    "Momentum": "AI is framed as an unstoppable process, moving train, wave, race, acceleration, or force that cannot be reversed.",
+    "Disease": "AI is described as spreading, infecting, contaminating, mutating, or acting like a contagion.",
+    "God": "AI is described as godlike, omniscient, all-powerful, superhuman, transcendent, or beyond human capability.",
+    "Genie": "AI is explicitly framed as magical, wish-granting, supernatural, or genie-like, especially with risky or unintended consequences.",
+    "Oracle": "AI is described as an authoritative source of answers, prediction, prophecy, truth, or unquestioned guidance.",
 }
 
 GRANULARITY_DEFINITIONS = {

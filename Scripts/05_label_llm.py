@@ -25,8 +25,10 @@ DB_PATH = Path("data/database/framescope.db")
 
 
 VALID_METAPHORS = {
-    "Tool", "Assistant", "Genie", "Mirror",
-    "Child", "Friend", "Animal", "God", "None",
+    "Tool", "Weapon", "Mirror", "Garbage", "Black Box",
+    "Mind", "Friend", "Child", "Criminal", "Artist",
+    "Assistant", "Animal", "Disaster", "Momentum", "Disease",
+    "God", "Genie", "Oracle", "None",
 }
 
 VALID_GRANULARITY = {
@@ -186,7 +188,7 @@ Return ONLY valid JSON in this exact format:
 {{
   "granularity": "General-AI | Model-Specific | Domain-Specific | Not Applicable",
   "stance": "Positive | Neutral/Unclear | Negative",
-  "dominant_metaphor": "Tool | Assistant | Genie | Mirror | Child | Friend | Animal | God | None"
+    "dominant_metaphor": "Tool | Weapon | Mirror | Garbage | Black Box | Mind | Friend | Child | Criminal | Artist | Assistant | Animal | Disaster | Momentum | Disease | God | Genie | Oracle | None"
 }}
 
 Rules:
