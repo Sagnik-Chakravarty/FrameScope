@@ -1,16 +1,41 @@
+# Core HTTP / config
 requests
+python-dotenv
 pyyaml
-spacy
+
+# FastAPI backend for SagnikGPT
+fastapi
+uvicorn
+pydantic
+
+# Vector database / RAG
+chromadb
+
+# Data processing
 pandas
-tqdm
 numpy
+tqdm
+scikit-learn
+
+# PDF / HTML / image ingestion
+pypdf
+beautifulsoup4
+pillow
+pytesseract
+
+# LLM / API clients
+openai
+
+# NLP
+spacy
+
+# Visualization / dashboard
 matplotlib
 seaborn
-python-dotenv
-openai
-streamlit
 plotly
 kaleido
+streamlit
+
+# Database
 sqlalchemy
 psycopg2-binary
-scikit-learn

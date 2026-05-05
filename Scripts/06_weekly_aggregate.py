@@ -96,6 +96,34 @@ def create_summary_tables(conn: sqlite3.Connection) -> None:
     conn.commit()
 
 
+def ensure_required_tables(conn: sqlite3.Connection) -> None:
+    required_tables = ["aggregate_weekly_metrics", "polarizing_examples"]
+    missing_tables = []
+
+    for table in required_tables:
+        row = conn.execute(
+            """
+            SELECT 1
+            FROM sqlite_master
+            WHERE type = 'table'
+              AND name = ?
+            LIMIT 1;
+            """,
+            (table,),
+        ).fetchone()
+
+        if row is None:
+            missing_tables.append(table)
+
+    if missing_tables:
+        missing = ", ".join(missing_tables)
+        raise RuntimeError(
+            "Missing required aggregate tables: "
+            f"{missing}. Run Scripts/06b_backfill_weekly_aggregate.py first "
+            "to create and populate the weekly aggregate tables."
+        )
+
+
 def load_prompt(path: Path) -> str:
     if not path.exists():
         raise FileNotFoundError(f"Missing prompt file: {path}")
@@ -813,6 +841,7 @@ def main() -> None:
 
     try:
         create_summary_tables(conn)
+        ensure_required_tables(conn)
 
         weeks = get_weeks_to_process(
             conn,

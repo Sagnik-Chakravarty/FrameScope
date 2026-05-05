@@ -137,6 +137,147 @@ python3 Scripts/13_run_weekly_pipeline.py --archive-dry-run
 python3 Scripts/13_run_weekly_pipeline.py --skip-neon-upload
 ```
 
+Email approval gate (free):
+
+```bash
+export FRAMESCOPE_EMAIL_SMTP_HOST="smtp.gmail.com"
+export FRAMESCOPE_EMAIL_SMTP_PORT="465"
+export FRAMESCOPE_EMAIL_IMAP_HOST="imap.gmail.com"
+export FRAMESCOPE_EMAIL_IMAP_PORT="993"
+export FRAMESCOPE_EMAIL_USERNAME="you@example.com"
+export FRAMESCOPE_EMAIL_PASSWORD="your_app_password"
+export FRAMESCOPE_EMAIL_FROM="you@example.com"
+export FRAMESCOPE_APPROVER_EMAIL="you@example.com"
+
+python3 Scripts/13_run_weekly_pipeline.py --email-approval
+```
+
+When `--email-approval` is used, the script sends an approval email and waits for a reply:
+
+- Reply `Y` or `YES` to start the run.
+- Reply `N` or `NO` to skip the run.
+- If no reply arrives before timeout, the run is skipped.
+
+Optional email tuning:
+
+```bash
+python3 Scripts/13_run_weekly_pipeline.py \
+  --email-approval \
+  --email-timeout-minutes 90 \
+  --email-poll-seconds 20
+```
+
+SMS approval gate (Twilio):
+
+```bash
+export FRAMESCOPE_TWILIO_ACCOUNT_SID="ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+export FRAMESCOPE_TWILIO_AUTH_TOKEN="your_twilio_auth_token"
+export FRAMESCOPE_TWILIO_FROM_NUMBER="+1XXXXXXXXXX"
+export FRAMESCOPE_APPROVER_PHONE="+1YYYYYYYYYY"
+
+python3 Scripts/13_run_weekly_pipeline.py --sms-approval
+```
+
+When `--sms-approval` is used, the script sends an SMS prompt and waits for a reply:
+
+- Reply `Y` or `YES` to start the run.
+- Reply `N` or `NO` to skip the run.
+- If no reply arrives before timeout, the run is skipped.
+
+Optional SMS tuning:
+
+```bash
+python3 Scripts/13_run_weekly_pipeline.py \
+  --sms-approval \
+  --sms-timeout-minutes 45 \
+  --sms-poll-seconds 15
+```
+
+### Weekly Automation on macOS (launchd)
+
+1. Create a wrapper script, for example `~/bin/framescope_weekly.sh`:
+
+```bash
+#!/bin/zsh
+set -euo pipefail
+
+cd /Volumes/SSD500GB/FrameScope
+
+export FRAMESCOPE_TWILIO_ACCOUNT_SID="ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+export FRAMESCOPE_TWILIO_AUTH_TOKEN="your_twilio_auth_token"
+export FRAMESCOPE_TWILIO_FROM_NUMBER="+1XXXXXXXXXX"
+export FRAMESCOPE_APPROVER_PHONE="+1YYYYYYYYYY"
+
+export FRAMESCOPE_EMAIL_SMTP_HOST="smtp.gmail.com"
+export FRAMESCOPE_EMAIL_SMTP_PORT="465"
+export FRAMESCOPE_EMAIL_IMAP_HOST="imap.gmail.com"
+export FRAMESCOPE_EMAIL_IMAP_PORT="993"
+export FRAMESCOPE_EMAIL_USERNAME="you@example.com"
+export FRAMESCOPE_EMAIL_PASSWORD="your_app_password"
+export FRAMESCOPE_EMAIL_FROM="you@example.com"
+export FRAMESCOPE_APPROVER_EMAIL="you@example.com"
+
+/usr/bin/python3 Scripts/13_run_weekly_pipeline.py --email-approval
+```
+
+2. Make it executable:
+
+```bash
+chmod +x ~/bin/framescope_weekly.sh
+```
+
+3. Create `~/Library/LaunchAgents/com.framescope.weekly.plist`:
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+  <dict>
+    <key>Label</key>
+    <string>com.framescope.weekly</string>
+
+    <key>ProgramArguments</key>
+    <array>
+      <string>/bin/zsh</string>
+      <string>/Users/your-user/bin/framescope_weekly.sh</string>
+    </array>
+
+    <key>StartCalendarInterval</key>
+    <dict>
+      <key>Weekday</key>
+      <integer>1</integer>
+      <key>Hour</key>
+      <integer>9</integer>
+      <key>Minute</key>
+      <integer>0</integer>
+    </dict>
+
+    <key>WorkingDirectory</key>
+    <string>/Volumes/SSD500GB/FrameScope</string>
+
+    <key>StandardOutPath</key>
+    <string>/tmp/framescope_weekly.out</string>
+    <key>StandardErrorPath</key>
+    <string>/tmp/framescope_weekly.err</string>
+
+    <key>RunAtLoad</key>
+    <false/>
+  </dict>
+</plist>
+```
+
+4. Load and start the schedule:
+
+```bash
+launchctl unload ~/Library/LaunchAgents/com.framescope.weekly.plist 2>/dev/null || true
+launchctl load ~/Library/LaunchAgents/com.framescope.weekly.plist
+launchctl start com.framescope.weekly
+```
+
+The scheduled run now asks by email first. It starts only when you reply `Y`.
+
+Tip for Gmail users: use an App Password (with 2FA enabled) instead of your normal login password.
+
 ## Directory Structure
 
 | Path | Purpose |
