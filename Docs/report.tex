@@ -19,17 +19,21 @@
 \maketitle
 
 \begin{abstract}
-This report summarizes a structured analysis of Reddit discussions about artificial intelligence. The analysis combines metaphor labeling, stance classification, granularity detection, subreddit-level comparison, temporal trend analysis, engagement patterns, and a bubble chart that compares metaphors across communities. The central finding is that Reddit AI discourse is led by practical, tool-oriented language, but that framing coexists with criticism, concern, and a growing move toward discussion of specific models and systems.
+This report summarizes a structured analysis of Reddit discussions about artificial intelligence collected from January 2020 through May 2026. The analysis combines metaphor labeling, stance classification, granularity detection, subreddit-level comparison, temporal trend analysis, engagement patterns, and a bubble chart that compares metaphors across communities. The central finding is that Reddit AI discourse is led by practical, tool-oriented language, but that framing coexists with criticism, concern, and a growing move toward discussion of specific models and systems.
 \end{abstract}
 
 \section{Executive Summary}
-The results point to three broad conclusions.
+This report covers Reddit AI discussion from January 2020 through May 2026 and shows that the conversation is best understood as a set of community-specific interpretations rather than a single public opinion.
 
-First, the most common post-level framing treats AI as a useful tool. That does not mean the conversation is cheerful or uncritical. The sentence-level data show that strongly negative framings are also common, especially around ideas such as garbage, criminal behavior, and black-box systems.
+The dominant center of the corpus is practical and tool-oriented. AI is most often framed as something to use, test, or integrate into a workflow. But that center is surrounded by distinct forms of critique: Garbage frames quality problems, Criminal frames accountability and misconduct, Black Box frames opacity and trust, Weapon frames misuse and harm, and Disaster frames broad social disruption. These are not interchangeable negatives; they point to different concerns.
 
-Second, framing and sentiment move together. Practical metaphors like tool, assistant, and friend are usually associated with positive language, while metaphors such as weapon, disaster, and black box are more often associated with criticism or concern.
+Granularity makes the picture sharper. Positive frames such as Tool and Assistant are usually concrete and model-specific, while more abstract frames such as Mind and Mirror are used when people are asking what AI means rather than what it does. Negative frames split by the kind of objection being made: some communities focus on output quality, others on labor and copyright, others on social risk or governance. The same stance can therefore mean very different things depending on the metaphor that carries it.
 
-Third, the communities do not all talk about AI in the same way. Some subreddits stay broad and abstract, while others are concrete and model-specific. Over time, the conversation also becomes more specific and more technically grounded. Posts that provoke disagreement tend to draw more comments, even when they do not attract the most agreement.
+Community identity matters as much as sentiment. Adoption-oriented communities use AI as a practical object and are usually positive or mixed-positive. Conflict communities use AI as a battleground for arguments about copyright, creativity, and legitimacy. Risk-oriented communities connect AI to labor, politics, and institutional harm. Exploratory communities treat AI as a question about intelligence, cognition, and social meaning. The bubble chart and community table show that Reddit does not just judge AI; it assigns AI a social role.
+
+The temporal analysis adds a final layer. Attention spikes are not random increases in posting. They cluster around moments when AI becomes a public event, such as launches, major product cycles, or widely discussed debates. During those spikes, Tool usually rises first, but Garbage, Criminal, and Black Box rise with it, showing that public attention brings adoption and backlash together.
+
+The overall pattern is therefore not simply pro-AI or anti-AI. Reddit AI discourse is more accurately described as a negotiated public conversation in which communities test AI, criticize it, defend it, and debate its consequences at the same time.
 
 \section{Methodology}
 The analysis is built from sentence-level labels and post-level summaries. Each sentence can carry three major annotation dimensions:
@@ -41,15 +45,17 @@ The analysis is built from sentence-level labels and post-level summaries. Each 
 
 Sentence-level aggregation captures the language choices used inside individual posts. Post-level aggregation identifies the dominant frame for each Reddit submission. This distinction matters because a single post can contain both praise and criticism, even though engagement is usually recorded at the post level.
 
-The report relies on five figures and two summary tables:
+The report relies on six figures and three summary tables:
 \begin{itemize}
   \item Metaphor--sentiment heatmap.
+  \item Metaphor--granularity--stance summary.
   \item Community profiles figure.
   \item Temporal metaphor evolution figure.
   \item Engagement matrix.
   \item Subreddit--metaphor bubble chart.
   \item Label distribution table.
   \item Post-dominant metaphor table.
+  \item Metaphor--granularity--stance summary table.
 \end{itemize}
 
 \section{Dataset Snapshot}
@@ -108,9 +114,45 @@ None & Not Applicable & Neutral/Unclear & 14099 & 12217 \\
   \caption{Metaphor--sentiment heatmap showing which frames skew positive, neutral, or negative.}
 \end{figure}
 
-The heatmap shows that metaphor choice and sentiment are tightly linked. Tool, assistant, and friend are mainly used in positive settings, while weapon, disaster, garbage, and black box are more often used in negative settings. The ``none'' category remains important because it captures technical language that is not figurative.
+The heatmap shows that metaphor choice and sentiment are tightly linked. Tool, assistant, and friend are mainly used in positive settings, while weapon, disaster, garbage, criminal, and black box are more often used in negative settings. The ``none'' category remains important because it captures technical language that is not figurative.
 
-The main message is simple: the way people describe AI strongly influences whether the conversation sounds useful, critical, or neutral.
+The main message is not only that metaphor changes tone. Different metaphors point to different kinds of claims. Tool and assistant usually describe AI as a concrete system that can be used. Garbage usually criticizes output quality. Criminal focuses on wrongdoing, theft, deception, or accountability. Black box focuses on opacity. Weapon focuses on intentional misuse. Disaster shifts from a specific product to broad social or systemic risk.
+
+\section{Figure 1b: Metaphor, Granularity, and Stance}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.98\textwidth]{figures/metaphor_granularity_stance.png}
+  \caption{Three-way summary showing how each metaphor combines stance with general-AI, model-specific, and domain-specific discussion.}
+\end{figure}
+
+This figure adds the missing specificity layer. Positive frames are usually concrete. Tool is about 85\% positive and about 82\% model-specific; assistant is about 97\% positive and mostly model-specific or domain-specific; friend and genie also lean positive and model-specific. These frames are adoption-oriented because they make AI visible as a named system, assistant, workflow, or capability.
+
+Negative frames split into several different critiques. Garbage is a quality critique: AI outputs are low value, spam-like, wrong, or degrading a platform. Criminal is an accountability critique: AI is connected to theft, fraud, exploitation, or irresponsible actors. Black box is an opacity critique: the system may be useful, but it is difficult to inspect or trust. Weapon is a misuse critique: AI becomes dangerous when directed toward manipulation, surveillance, cyber abuse, or harm. Disaster is different because it is more general-AI than the other negative frames; it is used when people talk about broad social disruption or systemic risk rather than one product.
+
+The conceptual frames do different work again. Mind connects AI to agency, cognition, consciousness, and intelligence. Mirror frames AI as a reflection of human culture, bias, or society. Artist appears most strongly in domain-specific creative contexts. Oracle and genie describe powerful answer-giving or wish-fulfilling systems, often with a mix of fascination and caution.
+
+The practical implication is that stance alone is too coarse. A negative Garbage post calls for better quality control. A negative Criminal post calls for accountability. A negative Black Box post calls for transparency. A negative Weapon post calls for misuse prevention. A negative Disaster post calls for governance and risk mitigation. The metaphor identifies what kind of concern the stance is actually expressing.
+
+\begin{table}[H]
+\centering
+\caption{Selected metaphor interpretations by stance and granularity}
+\label{tab:metaphorgranularitystance}
+\begin{tabular}{p{2.2cm} p{2.5cm} p{3.0cm} p{6.0cm}}
+\toprule
+Metaphor & Dominant stance & Dominant granularity & Main interpretation \\
+\midrule
+Tool & Positive & Model-Specific & Practical use and capability \\
+Assistant & Positive & Model-Specific & Delegated help and workflow support \\
+Garbage & Negative & Model-Specific & Output quality and platform degradation \\
+Criminal & Negative & Model-Specific & Theft, deception, and accountability \\
+Black Box & Negative & Model-Specific & Opacity, trust, and explainability \\
+Weapon & Negative & Model-Specific & Misuse, manipulation, and harm \\
+Disaster & Negative & General-AI & Systemic or social disruption \\
+Artist & Positive & Domain-Specific & Creative production and authorship \\
+Mirror & Positive/Mixed & Domain-Specific & Reflection of culture, bias, or society \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 \section{Figure 2: Community Profiles}
 \begin{figure}[H]
@@ -143,6 +185,31 @@ The pattern is stable but not static. Tool remains the leading frame, which mean
 
 Overall, the timeline suggests a shift from novelty-driven conversation toward discussion of specific models, specific tools, and specific concerns.
 
+\section{Event Windows and Volume Surges}
+The biggest volume changes are not random noise. They cluster around moments when AI becomes a public event rather than only a technical topic. The interpretation below is cautious: the corpus does not label real-world events directly, so the links are based on timing, known release cycles, and the metaphor mix that rises with each spike.
+
+\begin{table}[H]
+\centering
+\caption{Event windows, likely triggers, and the metaphors that rose with them}
+\label{tab:eventwindows}
+\begin{tabular}{p{1.7cm} p{3.0cm} p{4.0cm} p{5.0cm}}
+\toprule
+Spike window & Likely trigger & Metaphors that rose most & What the conversation was doing \\
+\midrule
+2022-12 to 2023-01 & ChatGPT launch and immediate viral adoption & Tool, None, Assistant, Mind & Users were discovering AI as a usable product. The conversation mixed excitement, first-time experimentation, and early uncertainty about how much the system could really do. \\
+2025-01 & A major model-release and comparison cycle & Tool, None, Garbage, Criminal, Mind, Assistant & The community shifted from first impressions to evaluation. Positive language stayed dominant, but criticism about quality, accountability, and trust rose with it. \\
+2025-05 to 2025-07 & A broader news-and-release cycle around new AI products and public debate & Tool, Garbage, None, Criminal, Mind & Discussion became more conflicted. People were not just using AI; they were arguing about output quality, misuse, workplace impact, and what counted as acceptable use. \\
+2026-03 to 2026-04 & A late-cycle surge in AI attention, likely tied to fresh model coverage, demos, or policy debate & Tool, Garbage, None, Criminal, Black Box, Assistant & This was the most intense phase in the series. AI was still framed as useful, but trust and transparency concerns became more prominent, which indicates a mature stage of adoption mixed with backlash. \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The event table shows an important pattern: spikes do not only increase positive talk. They also pull in criticism. When attention rises, Tool usually rises first, but Garbage, Criminal, and Black Box often rise with it. That means public AI events produce both enthusiasm and resistance at the same time.
+
+This matters because it shows how community response changes across event types. Launch events start with curiosity and adoption language. Later product cycles move the discussion toward evaluation. Controversial or heavily publicized releases bring stronger negative frames, especially when users are judging quality, accountability, or opacity.
+
+In short, the rise in post volume usually means more than more posts. It means a change in what people are doing with AI language: discovering it, testing it, defending it, criticizing it, or arguing over its social consequences.
+
 \section{Figure 4: Engagement Matrix}
 \begin{figure}[H]
   \centering
@@ -172,21 +239,55 @@ This figure compares subreddit and metaphor directly. Each bubble shows how ofte
 
 The chart is useful because it shows repetition. Large bubbles indicate that a subreddit repeatedly uses the same frame. The vertical position separates practical, critical, and philosophical language. Normalization keeps the biggest communities from overwhelming the display.
 
-Taken together, the bubble chart and the community profile figure show that subreddit identity shapes the language of AI discussion.
+At the subreddit level, the chart shows that communities fall into a few clear sentiment patterns.
+
+Table~\ref{tab:communitytypes} compresses those patterns into four community archetypes. It helps show not just whether a subreddit is positive or negative, but how it tends to talk when people reply to one another, defend a position, or turn AI into a broader social argument.
+
+\begin{table}[H]
+\centering
+\caption{Community archetypes and how they interact with AI}
+\label{tab:communitytypes}
+\begin{tabular}{p{2.8cm} p{2.2cm} p{2.1cm} p{6.1cm}}
+\toprule
+Community type & Typical frame & Typical stance & How the community interacts with AI \\
+\midrule
+Positive adopters & Tool, Assistant, Friend & Positive or mixed-positive & Treat AI as something useful to test, compare, and refine. Discussions focus on workflow, results, prompts, and practical benefits. \\
+Conflict communities & Criminal, Garbage & Negative or mixed-negative & Treat AI as something to argue over. Threads often center on copyright, quality, fairness, or whether AI should be accepted at all. \\
+Risk and policy communities & Criminal, Disaster, Weapon & Negative & Treat AI as a social or institutional risk. Discussion tends to focus on labor, politics, power, and harm rather than usability. \\
+Exploratory communities & Mind, Mirror, None & Neutral or mixed & Treat AI as a question to explore. These communities ask what AI is, what it means, and how it changes cognition, work, or identity. \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Positive, adoption-oriented communities} tend to treat AI as useful and practical. r/aiArt, r/automation, r/generativeAI, r/artificial, and r/ChatGPT are dominated by \textbf{Tool} bubbles. Their stance is mostly positive or mixed-positive. r/aiArt and r/automation are roughly two-thirds positive, r/generativeAI is similarly positive, and r/artificial leans positive as well. r/ChatGPT is more divided, but its largest frame is still Tool. That means the community sees AI as helpful, even when it also discusses frustration, misuse, or limits.
+
+\textbf{Negative or conflict-oriented communities} are more likely to frame AI as harmful, contested, or low quality. r/DefendingAIArt is a good example: although it is organized around defending AI art, its language is still more negative overall and centers on the \textbf{Criminal} frame. That suggests a community responding to conflict, copyright disputes, and accusations rather than simply celebrating AI. r/ArtistLounge also leans negative and uses the \textbf{Garbage} frame heavily, showing that many artists interpret AI as cheap output, creative devaluation, or a threat to artistic work.
+
+\textbf{Risk-focused communities} connect AI to labor, politics, and social harm. r/antiwork, r/politics, r/news, and r/geopolitics are more negative and often organize around Criminal or Disaster frames. These communities are not mainly asking whether AI is convenient. They are asking who is affected, who benefits, and what kinds of institutional or geopolitical harm may follow.
+
+\textbf{Mixed or exploratory communities} are more neutral and interpret AI less as a threat or product and more as a topic for discussion. r/AskReddit and r/AskHistorians are largely neutral, which fits their question-and-answer style. r/technology is almost evenly split, so it works as a contested public forum. r/cogsci and r/transhumanism lean more positive, but they rely more on \textbf{Mind} language, which means AI is discussed as intelligence, cognition, or future human-machine change rather than only as a tool.
+
+The overall interpretation is straightforward: tool-heavy communities are usually more positive, criminal/garbage/disaster-heavy communities are usually more negative, and mind/mirror-heavy communities are more exploratory or mixed. In other words, the same broad topic, AI, is viewed very differently depending on the community. Some subreddits treat it as a tool, some as a threat, some as a creative partner, and some as a larger question about intelligence and society.
 
 \section{Integrated Findings}
-Across the figures and tables, the same theme appears repeatedly: Reddit AI discourse is not singular. It is a layered conversation that mixes practical adoption language, technical description, philosophical speculation, and risk framing.
+Across the figures and tables, the same broad story keeps repeating, but with different accents. Reddit AI discourse is not just ``positive'' or ``negative''; it is a set of overlapping conversations about usefulness, quality, trust, control, creativity, and risk. The important pattern is that metaphor, stance, and granularity work together. A positive Tool post is usually not making the same kind of claim as a positive Mind post, and a negative Criminal post is not expressing the same concern as a negative Black Box post.
 
-The strongest overall finding is the dominance of \textbf{Tool} framing. At scale, Reddit users often treat AI as something practical to use rather than something purely mysterious or purely threatening. But this practical center does not flatten the discussion. Strong negative frames such as \textbf{Garbage}, \textbf{Criminal}, and \textbf{Black Box} show that criticism is embedded in the conversation.
+The first major finding is that practical adoption dominates the center of the conversation, but it does not erase critique. Tool, Assistant, and Friend frames place AI inside workflows, prompting, and creative use. By contrast, Garbage, Criminal, Weapon, and Black Box frames describe different failures: low quality, wrongdoing, misuse, or opacity. This means the community is not simply split between supporters and critics. It is using different metaphors to talk about different failure modes and different benefits.
 
-A second finding is that community identity matters. The same AI topic is discussed differently depending on subreddit norms. Some communities are heavily model-specific, while others stay broad. Some communities are more optimistic, while others emphasize risk. The bubble chart and the community profile figure show that subreddit structure is part of the rhetoric.
+The second finding is that community identity shapes not only sentiment, but also the kind of social work the discussion performs. Some subreddits use AI as a productivity object; others use it as a battleground for copyright, labor, moderation, or political argument; others use it as a way to explore cognition and identity. The bubble chart and community table show that communities are not merely ranking AI positively or negatively. They are assigning AI a role: tool, threat, symbol, or question. That role determines what people argue about and what they expect AI to do.
 
-A third finding is that the discourse matures over time. The temporal figure shows that broad AI talk does not disappear, but concrete tool-oriented and model-specific discussion becomes increasingly visible. That is what one would expect from a technology moving from novelty to normal use.
+The third finding is that temporal spikes are structured by real-world attention events. When volume rises, the dominant frame is still usually Tool, but the surge is rarely one-dimensional. Public attention waves also pull in Garbage, Criminal, and Black Box language, which suggests that release cycles, viral demos, policy disputes, and other public events do not only increase interest; they reorganize the framing of AI itself. The volume spikes therefore mark moments when communities shift from passive mention to active evaluation.
+
+The fourth finding is that the conversation is maturing rather than flattening. Over time, general discussion gives way to more model-specific and domain-specific language, but the older frames do not disappear. Instead, they accumulate around new technologies and new controversies. That is why the same corpus can show both growing technical specificity and growing critique at the same time.
 
 \section{Conclusion}
-This report shows that Reddit AI discourse is best understood as a dynamic rhetorical ecosystem. The conversation is anchored by practical tool language, tempered by skepticism and risk language, and increasingly organized around concrete systems rather than abstract hype. The figures and tables make that pattern visible across frame distribution, subreddit variation, temporal change, and engagement behavior.
+This report shows that Reddit AI discourse is not a single reaction to technology. It is a changing system of interpretations. People describe AI as a tool when they are testing it, as an assistant when they want help, as garbage when output quality fails, as criminal when they want accountability, as black box when they want transparency, and as disaster or weapon when they are worried about broader harm. Those differences matter because they reveal what kind of problem the community thinks AI is.
 
-If this report is used for stakeholder communication, the practical takeaway is simple: the words chosen to describe AI shape both sentiment and engagement. If the goal is to explain adoption, use tool-oriented language. If the goal is to surface risk, use critical frames directly. If the goal is to understand public debate, look at community differences rather than averaging them away.
+The clearest conclusion is that communities do not just disagree about whether AI is good or bad. They disagree about what AI is. For some groups it is a workflow aid; for others it is a labor threat, a creative controversy, a political problem, or a question about intelligence and agency. The same event can therefore produce enthusiasm in one subreddit, skepticism in another, and a policy argument in a third.
+
+The event analysis adds a final layer: spikes in attention are moments when these interpretations collide. Major releases and public debates tend to increase both adoption language and criticism at the same time. Tool rises because users are trying new systems. Garbage, Criminal, and Black Box rise because users are evaluating quality, trust, and control. In other words, the volume surges are not just traffic peaks; they are moments when the discourse becomes more conflicted and more revealing.
+
+For that reason, the most useful reading of the corpus is not that Reddit is broadly pro-AI or broadly anti-AI. The more accurate reading is that Reddit is negotiating AI in public, one community at a time, through different metaphors and different levels of specificity. The figures and tables show a discourse that is becoming more concrete, more contested, and more socially aware as AI moves from novelty to everyday infrastructure.
 
 \section{Appendix: Data Files and Reproducibility}
 The analysis artifacts are stored alongside this report.

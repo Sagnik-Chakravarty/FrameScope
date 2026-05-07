@@ -32,6 +32,7 @@ Below are the key figures and tables used to support the findings in this report
 - Figure 3 — Temporal Trends (absolute + normalized) (Docs/figures/metaphor_temporal.png)
 - Figure 4 — Engagement Matrix (Docs/figures/engagement_matrix.png)
 - Figure 5 — Subreddit × Metaphor Bubble Chart (Docs/figures/subreddit_metaphor_bubble.png)
+- Figure 6 — Metaphor × Granularity × Stance Summary (Docs/figures/metaphor_granularity_stance.png)
 
 Example export snippets (run inside the notebook before or after the plotting cell):
 
@@ -55,6 +56,8 @@ Insert the generated images in this markdown by copying them into `Docs/figures/
 ![Engagement Matrix](figures/engagement_matrix.png)
 
 ![Subreddit × Metaphor Bubble Chart](figures/subreddit_metaphor_bubble.png)
+
+![Metaphor × Granularity × Stance Summary](figures/metaphor_granularity_stance.png)
 
 
 ## 1. Methodology
@@ -349,15 +352,71 @@ Over time, discourse has shifted from purely **General-AI** (broad concepts) tow
 - Green: Positive-dominant metaphors (Tool, Friend, Assistant)
 
 **Key observations**:
-- **Weapon**: 60-70% Negative (threat framing dominates)
-- **Tool**: 50-60% Positive (utility framing dominates)
-- **Mind**: 40% Negative, 35% Positive (intellectually polarizing)
-- **None**: 50% Neutral (technical, non-figurative)
+- **Tool** is positive and highly model-specific: it is usually attached to named systems, products, or workflows rather than abstract AI.
+- **Assistant** is the most clearly adoption-oriented frame: positive, model-specific, and often practical.
+- **Garbage**, **Criminal**, **Black Box**, and **Weapon** are strongly negative, but they do not all mean the same thing.
+- **Disaster** is more general-AI than most negative frames, which means it is often used for broad social, existential, or systemic concern.
+- **Mirror** and **Artist** are more domain-specific, especially in creative and cultural contexts.
+- **Mind** is more philosophical than purely operational: it appears across general, model-specific, and domain-specific discussion.
 
-**Business implication**: If you're communicating about AI, metaphor choice determines sentiment trajectory:
-- Use **Tool** for positive messaging
-- Use **Weapon** if discussing risks
-- Use **Mind** for philosophical/existential debates
+**Business implication**: If you're communicating about AI, metaphor choice determines not only sentiment but also the level of specificity:
+- Use **Tool** or **Assistant** when the message is about practical use of named systems.
+- Use **Weapon**, **Criminal**, or **Black Box** when discussing specific harms, accountability, opacity, or misuse.
+- Use **Disaster** when discussing broad systemic risk.
+- Use **Mind**, **Mirror**, or **Artist** when the question is conceptual, cultural, or domain-specific rather than purely technical.
+
+---
+
+### 3.3b Metaphor × Granularity × Stance
+*What kind of AI is each metaphor talking about?*
+
+![Metaphor × Granularity × Stance Summary](figures/metaphor_granularity_stance.png)
+
+The three-way plot adds an important distinction: metaphors are not just emotional labels. They also signal whether the discussion is about AI in general, a named model/tool, or a specific domain.
+
+#### Positive Frames Are Usually Concrete
+
+**Tool**, **Assistant**, **Friend**, **Genie**, and **Artist** are mostly positive and mostly model-specific or domain-specific.
+
+- **Tool**: ~85% positive; ~82% model-specific.
+- **Assistant**: ~97% positive; ~74% model-specific and ~25% domain-specific.
+- **Friend**: ~81% positive; ~77% model-specific.
+- **Artist**: ~94% positive; ~60% domain-specific.
+
+**Interpretation**: Positive AI discourse is grounded in use. People become more favorable when they are talking about a specific system, capability, or creative workflow. Positive metaphors make AI legible as something that can be used, collaborated with, or evaluated in a task context.
+
+#### Negative Frames Split Into Different Kinds Of Critique
+
+The negative metaphors are not interchangeable.
+
+- **Garbage**: ~91% negative; mostly model-specific. This is a quality critique: bad outputs, spam, hallucination, low-value content, or degraded platforms.
+- **Criminal**: ~100% negative; mostly model-specific. This is an accountability critique: theft, fraud, deception, copyright violation, exploitation, or irresponsible actors.
+- **Black Box**: ~86% negative; mostly model-specific. This is an opacity critique: systems are powerful but not understandable or trustworthy.
+- **Weapon**: ~99% negative; mostly model-specific. This is a misuse critique: AI as a tool for manipulation, cyber abuse, surveillance, or harm.
+- **Disaster**: ~99% negative; mostly general-AI. This is a systemic-risk critique: the concern is not only one tool, but broad social disruption.
+
+**Interpretation**: "Negative sentiment" contains multiple political and technical arguments. Garbage says AI is low quality. Criminal says AI is unjust or exploitative. Black Box says AI is opaque. Weapon says AI is dangerous when used deliberately. Disaster says AI may destabilize systems at scale.
+
+#### Abstract Frames Do Different Work
+
+**Mind**, **Mirror**, and **Oracle** are more interpretive than purely positive or negative.
+
+- **Mind** links AI to cognition, agency, or intelligence. It is not only about whether AI is useful; it asks what kind of entity AI is.
+- **Mirror** is more domain-specific and reflective. It often frames AI as revealing something about human culture, creativity, bias, or society.
+- **Oracle** and **Genie** point to powerful answer-giving systems, but they differ in tone: Oracle suggests knowledge and prediction, while Genie suggests wish fulfillment with possible unintended consequences.
+
+**Interpretation**: These metaphors are useful for conceptual debate. They make AI into a question about meaning, agency, knowledge, and social reflection rather than only a product or risk.
+
+#### Core Inference
+
+Metaphor, stance, and granularity form a single structure:
+
+- **Concrete + Positive**: Tool, Assistant, Friend, Artist.
+- **Concrete + Negative**: Garbage, Criminal, Black Box, Weapon.
+- **Abstract + Negative**: Disaster.
+- **Conceptual/Mixed**: Mind, Mirror, Oracle.
+
+This means the same stance can have different policy implications. A negative **Garbage** post calls for quality control; a negative **Criminal** post calls for accountability; a negative **Black Box** post calls for transparency; a negative **Disaster** post calls for governance or risk mitigation.
 
 ---
 
@@ -466,6 +525,70 @@ Shows relative emphasis (independent of total volume growth):
 **Lightest cells** (lowest engagement):
 - Niche metaphor combinations
 - Single-perspective arguments without complexity
+
+---
+
+### 3.7 Subreddit × Metaphor Bubble Chart
+*How individual communities view AI*
+
+The bubble chart compares subreddits directly against metaphor categories. A large bubble means that a subreddit repeatedly uses that metaphor. Read alongside stance percentages, the chart shows that Reddit communities do not simply talk about "AI" in one shared way. Each community turns AI into a different object of concern.
+
+#### Adoption-Oriented Communities
+
+**r/aiArt, r/automation, r/generativeAI, r/artificial, and r/ChatGPT** are dominated by **Tool** bubbles.
+
+- **r/aiArt**: ~66% positive, dominant metaphor **Tool**
+- **r/automation**: ~66% positive, dominant metaphor **Tool**
+- **r/generativeAI**: ~65% positive, dominant metaphor **Tool**
+- **r/artificial**: ~53% positive, dominant metaphor **Tool**
+- **r/ChatGPT**: mixed-positive, ~46% positive and ~39% negative, dominant metaphor **Tool**
+
+**Interpretation**: These communities mostly view AI as useful, productive, and capability-expanding. The strongest positive communities treat AI as something to use. r/ChatGPT is more conflicted than the other adoption communities: users still frame AI as a tool, but they also discuss model failures, hallucination, product frustration, misuse, and expectations around performance.
+
+#### Art-Conflict Communities
+
+The AI art communities split sharply.
+
+- **r/aiArt**: strongly positive, Tool-dominant
+- **r/DefendingAIArt**: ~51% negative, dominant metaphor **Criminal**
+- **r/ArtistLounge**: ~44% negative, dominant metaphor **Garbage**
+- **r/Art**: positive-leaning, dominant metaphor **Artist**
+
+**Interpretation**: r/aiArt treats AI as a creative instrument. r/ArtistLounge tends to view AI as degrading creative labor or producing low-value output. r/DefendingAIArt is not simply cheerful pro-AI discourse; its dominant Criminal frame suggests a defensive conflict space where users discuss accusations, theft claims, copyright disputes, moderation, and anti-AI behavior. The bubble plot therefore separates "AI as creative tool" from "AI as cultural conflict."
+
+#### Labor, Politics, And News Communities
+
+Several large non-AI-specific communities view AI through harm, power, and institutional risk.
+
+- **r/antiwork**: ~63% negative, dominant metaphor **Criminal**
+- **r/politics**: ~62% negative, dominant metaphor **Criminal**
+- **r/news**: ~45% negative, dominant metaphor **Criminal**
+- **r/geopolitics**: ~48% negative, dominant metaphor **Disaster**
+- **r/antiai**: ~69% negative, dominant metaphor **Garbage**
+
+**Interpretation**: These communities are not mainly asking whether AI is impressive. They ask who is harmed, who profits, who controls the system, and what damage follows. Criminal framing points to perceived wrongdoing, exploitation, theft, deception, or accountability failure. Disaster framing points to large-scale destabilization. Garbage framing rejects AI output or AI culture as low quality or corrosive.
+
+#### Technical, Knowledge, And Question Communities
+
+Some communities are more explanatory, mixed, or neutral.
+
+- **r/technology**: nearly split, ~43% positive and ~41% negative, dominant metaphor **Tool**
+- **r/AskReddit**: majority neutral, ~53% neutral, dominant metaphor **Criminal**
+- **r/AskHistorians**: majority neutral, ~54% neutral, dominant metaphor **Mirror**
+- **r/NoStupidQuestions**: mixed/negative, ~43% negative and ~40% neutral, dominant metaphor **Garbage**
+- **r/cogsci**: positive-leaning, dominant metaphor **Mind**
+
+**Interpretation**: r/technology functions as a contested public-technology forum: AI is useful, but not uncontroversial. r/AskReddit and r/AskHistorians are less adoption-oriented and more explanatory or reflective. r/cogsci uses Mind framing because AI is discussed as a question about cognition and intelligence rather than only as software. r/NoStupidQuestions shows public uncertainty: users ask basic questions, but the discussion often carries skepticism or frustration.
+
+#### Overall Bubble Plot Inference
+
+The bubble plot shows a strong relationship between metaphor and community stance:
+
+- **Tool-heavy communities** tend to be more positive.
+- **Criminal, Garbage, and Disaster-heavy communities** tend to be more negative.
+- **Mind and Mirror-heavy communities** tend to be more exploratory, philosophical, or neutral.
+
+The key point is that subreddit identity changes what AI "is" in the conversation. In one community AI is a tool; in another it is a threat to work; in another it is a creative partner; in another it is evidence of institutional wrongdoing; in another it is a question about intelligence. This is why average sentiment alone is not enough: the bubble chart shows the underlying community worldview.
 
 ---
 
