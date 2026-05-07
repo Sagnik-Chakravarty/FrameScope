@@ -1,0 +1,201 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{caption}
+\usepackage{float}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\setlength{\parskip}{0.6em}
+\setlength{\parindent}{0pt}
+
+\title{Reddit AI Discourse Analysis Report\\Metaphors, Sentiment, Community Structure, and Engagement}
+\author{FrameScope Analysis Pipeline}
+\date{May 7, 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+This report presents a complete narrative analysis of Reddit discussions about artificial intelligence using the FrameScope notebook outputs. The analysis combines metaphor labeling, stance classification, granularity detection, subreddit-level aggregation, temporal trend analysis, engagement modeling, and a subreddit--metaphor bubble chart. The core finding is that Reddit AI discourse is dominated by pragmatic, tool-oriented framing, but this default frame coexists with critical, risk-oriented language and a growing shift toward model-specific discussion.
+\end{abstract}
+
+\section{Executive Summary}
+The figures and tables show a stable rhetorical structure in Reddit AI discourse. The most common post-level frame is \textbf{Tool + Positive + Model-Specific}, indicating that many AI discussions present artificial intelligence as a practical instrument rather than a speculative force. At the same time, the sentence-level distribution shows that critical frames such as \textbf{Garbage}, \textbf{Criminal}, and \textbf{Black Box} are also prominent, which means the discourse is not uniformly optimistic.
+
+Three patterns stand out. First, metaphor choice is strongly tied to sentiment: \textbf{Tool}, \textbf{Assistant}, and \textbf{Friend} cluster with positive framing, while \textbf{Weapon}, \textbf{Disaster}, and \textbf{Black Box} skew negative. Second, community-level behavior is not homogeneous; some subreddits use AI language in a highly model-specific way, while others remain broad and abstract. Third, the temporal and engagement plots suggest maturation: discourse is moving from broad abstract discussion toward concrete system references, and controversial framing generates more comments even when it does not maximize agreement.
+
+\section{Methodology}
+The analysis is built on the FrameScope SQLite corpus and the accompanying LLM label tables. Each sentence can carry three major annotation dimensions:
+\begin{itemize}
+  \item \textbf{Metaphor category}: the dominant figurative frame used to describe AI.
+  \item \textbf{Stance}: positive, neutral/unclear, or negative orientation.
+  \item \textbf{Granularity}: general AI, model-specific, domain-specific, or not applicable.
+\end{itemize}
+
+The notebook aggregates these labels at both the sentence level and the post level. Sentence-level aggregation captures language patterns, while post-level aggregation identifies the dominant frame for each Reddit post. This distinction matters because a single post may contain both praise and criticism, but engagement is usually measured at the post level.
+
+The final report uses five exported figures from the notebook and two exported CSV tables:
+\begin{itemize}
+  \item Metaphor--sentiment heatmap.
+  \item Community profiles figure.
+  \item Temporal metaphor evolution figure.
+  \item Engagement matrix.
+  \item Subreddit--metaphor bubble chart.
+  \item Label distribution table.
+  \item Post-dominant metaphor table.
+\end{itemize}
+
+\section{Dataset Snapshot}
+The top rows of the exported tables show a clear distribution of frames. At the post level, \textbf{Tool} is the strongest frame, with \textbf{45,281} posts in the top row of the export and \textbf{16.63\%} of the post-dominant frames represented there. At the sentence level, \textbf{Tool} again leads with \textbf{77,647} sentence rows and \textbf{57,370} posts in the exported summary.
+
+Table~\ref{tab:postframes} summarizes the most common post-level dominant frames, and Table~\ref{tab:sentenceframes} summarizes the leading sentence-level combinations.
+
+\begin{table}[H]
+\centering
+\caption{Top post-level dominant frames}
+\label{tab:postframes}
+\begin{tabular}{l l l r r}
+\toprule
+Metaphor & Stance & Granularity & Posts & Pct Posts \\
+\midrule
+Tool & Positive & Model-Specific & 45281 & 16.63 \\
+Garbage & Negative & Model-Specific & 25602 & 9.40 \\
+Criminal & Negative & Model-Specific & 22951 & 8.43 \\
+Assistant & Positive & Model-Specific & 16809 & 6.17 \\
+Black Box & Negative & Model-Specific & 14837 & 5.45 \\
+None & Neutral/Unclear & General-AI & 13169 & 4.84 \\
+None & Neutral/Unclear & Model-Specific & 11824 & 4.34 \\
+Friend & Positive & Model-Specific & 11104 & 4.08 \\
+Mind & Positive & Model-Specific & 10373 & 3.81 \\
+None & Neutral/Unclear & Not Applicable & 7438 & 2.73 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{Top sentence-level label combinations}
+\label{tab:sentenceframes}
+\begin{tabular}{l l l r r}
+\toprule
+Metaphor & Granularity & Stance & Sentence Rows & Posts \\
+\midrule
+Tool & Model-Specific & Positive & 77647 & 57370 \\
+Garbage & Model-Specific & Negative & 44674 & 34133 \\
+Criminal & Model-Specific & Negative & 36881 & 27734 \\
+Assistant & Model-Specific & Positive & 28859 & 21467 \\
+Black Box & Model-Specific & Negative & 25671 & 19126 \\
+None & General-AI & Neutral/Unclear & 22006 & 18535 \\
+Mind & Model-Specific & Positive & 20306 & 15864 \\
+None & Model-Specific & Neutral/Unclear & 19985 & 17621 \\
+Friend & Model-Specific & Positive & 17837 & 14811 \\
+None & Not Applicable & Neutral/Unclear & 14099 & 12217 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Figure 1: Metaphor and Sentiment}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.95\textwidth]{figures/metaphor_sentiment_heatmap.png}
+  \caption{Metaphor--sentiment heatmap showing which frames skew positive, neutral, or negative.}
+\end{figure}
+
+The heatmap confirms that metaphor choice is not stylistic decoration; it is a strong signal of stance. \textbf{Tool}, \textbf{Assistant}, and \textbf{Friend} are closely associated with positive framing, while \textbf{Weapon}, \textbf{Disaster}, \textbf{Garbage}, and \textbf{Black Box} are more closely associated with negative framing. \textbf{None} remains important as a technical baseline, especially where the conversation is descriptive rather than figurative.
+
+This matters because the same AI topic can be framed as either utility or risk. The heatmap shows that these rhetorical choices are visible in the aggregate data, not only in individual examples.
+
+\section{Figure 2: Community Profiles}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.95\textwidth]{figures/community_profiles.png}
+  \caption{Community profiles combining subreddit size, metaphor usage, granularity, and sentiment balance.}
+\end{figure}
+
+The community figure shows that subreddit behavior is heterogeneous. Large, active communities tend to discuss AI in concrete terms, but the share of metaphorical language varies significantly. Some communities are rich in model-specific references, while others stay at the level of general AI discussion.
+
+The scatter panel shows that size alone does not determine sophistication. Some smaller subreddits are highly metaphorical, while some large technical communities are less figurative but more model-specific. The stacked granularity panel reinforces this pattern by separating broad conceptual talk from concrete tool discussion. The sentiment panel shows the expected polarity split: some communities lean positive and practical, while others are more skeptical or critical.
+
+In practical terms, the community figure supports three discourse clusters:
+\begin{itemize}
+  \item \textbf{Pragmatic adoption communities}: tool-focused, optimistic, and model-specific.
+  \item \textbf{Critical or safety-oriented communities}: more likely to use negative frames.
+  \item \textbf{Technical communities}: balanced, descriptive, and more likely to discuss named systems.
+\end{itemize}
+
+\section{Figure 3: Temporal Evolution}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.95\textwidth]{figures/metaphor_temporal.png}
+  \caption{Temporal evolution of the top metaphors in absolute and normalized form.}
+\end{figure}
+
+The temporal figure is important because it distinguishes raw growth from shifting emphasis. The absolute view shows that overall discussion volume grows over time, while the normalized view shows whether the composition of discourse changes as volume expands.
+
+The core reading is straightforward. \textbf{Tool} remains the strongest stable frame, which means utility-centered language is not a short-lived trend. \textbf{None} and other technical categories become more prominent in relative terms, which suggests a more mature and concrete discourse. At the same time, negative frames such as \textbf{Weapon} and \textbf{Disaster} remain visible, indicating that risk language grows alongside adoption language rather than replacing it.
+
+This supports a maturation hypothesis: Reddit AI discourse is moving from broad novelty talk toward more grounded discussion of specific models, tools, and risks.
+
+\section{Figure 4: Engagement Matrix}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.95\textwidth]{figures/engagement_matrix.png}
+  \caption{Engagement matrix comparing metaphor, stance, and average combined engagement.}
+\end{figure}
+
+The engagement matrix reveals the difference between agreement and discussion. Positive, practical framing tends to receive strong upvote support, while negative or controversial framing tends to attract more comments. In other words, agreement and debate are not the same thing.
+
+The main implication is that the highest-engagement frames are not always the most controversial, but the most controversial frames often generate discussion density. This means:
+\begin{itemize}
+  \item \textbf{Tool + Positive} is useful when the goal is broad approval.
+  \item \textbf{Weapon + Negative} is useful when the goal is debate or risk discussion.
+  \item \textbf{Mind + mixed stance} is useful when the goal is philosophical exploration.
+\end{itemize}
+
+The matrix also suggests that sentiment is a strong driver of audience reaction, but the type of reaction differs by frame. Some combinations maximize consensus, while others maximize discussion depth.
+
+\section{Figure 5: Subreddit--Metaphor Bubble Chart}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.95\textwidth]{figures/subreddit_metaphor_bubble.png}
+  \caption{Bubble chart of subreddit by metaphor category, where bubble size reflects the number of posts.}
+\end{figure}
+
+This figure is the clearest community comparison. Each bubble represents the number of posts for a given subreddit--metaphor combination, and the bubble area is normalized so the display remains readable across communities. The plot makes it easy to see where certain metaphors dominate particular subreddits.
+
+Three reading rules matter here. First, large bubbles indicate that a subreddit repeatedly uses a given metaphor. Second, the vertical position helps separate utilitarian, critical, and philosophical frames. Third, the normalized bubble size prevents the chart from being visually overwhelmed by the highest-volume communities.
+
+The bubble chart complements the community profile figure by showing the exact metaphor composition inside each subreddit rather than only an aggregate sentiment or granularity view. It makes the cluster structure visible at a glance.
+
+\section{Integrated Findings}
+Across the figures and tables, the same theme appears repeatedly: Reddit AI discourse is not singular. It is a layered conversation that mixes practical adoption language, technical description, philosophical speculation, and risk framing.
+
+The strongest overall finding is the dominance of \textbf{Tool} framing. This shows that, at scale, Reddit users often treat AI as an instrument to be used rather than a mystery to be solved or a threat to be feared. But this utilitarian center does not flatten the discourse. The strong presence of negative frames such as \textbf{Garbage}, \textbf{Criminal}, and \textbf{Black Box} shows that criticism is structurally embedded in the conversation.
+
+A second finding is that community identity matters. The same AI topic is discussed differently depending on subreddit norms. Some communities are heavily model-specific, while others stay broad. Some communities are more optimistic, while others emphasize risk. The bubble chart and community profile figure together show that subreddit structure is part of the rhetoric.
+
+A third finding is that the discourse matures over time. The temporal figure shows that broader AI talk does not disappear, but concrete tool-oriented and model-specific discussion becomes increasingly visible. That is what one would expect from a technology moving from novelty to normality.
+
+\section{Conclusion}
+This report shows that Reddit AI discourse is best understood as a dynamic rhetorical ecosystem. The conversation is anchored by pragmatic tool language, tempered by skepticism and risk language, and increasingly organized around concrete systems rather than abstract hype. The notebook outputs make that pattern visible across frame distribution, subreddit variation, temporal change, and engagement behavior.
+
+If this report is used for stakeholder communication, the practical takeaway is simple: the words chosen to describe AI shape both sentiment and engagement. If the goal is to explain adoption, use tool-oriented language. If the goal is to surface risk, use the critical frames directly. If the goal is to understand public debate, inspect the community-level differences rather than averaging them away.
+
+\section{Appendix: Data Files and Reproducibility}
+The exported analysis artifacts are stored alongside this report:
+\begin{itemize}
+  \item Figures: \texttt{Docs/figures/}
+  \item Tables: \texttt{Docs/tables/}
+  \item Source notebook: \texttt{Notebooks/03\_reddit\_metaphor\_inference.ipynb}
+\end{itemize}
+
+The PDF can be regenerated from the TeX source with:
+\begin{verbatim}
+cd /Volumes/SSD500GB/FrameScope/Docs
+tectonic report.tex --outdir .
+\end{verbatim}
+
+\end{document}
